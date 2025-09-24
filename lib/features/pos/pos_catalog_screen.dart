@@ -107,38 +107,64 @@ class _PackageCard extends HookConsumerWidget {
     return Card(
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(Spacing.md),
+        padding: const EdgeInsets.all(Spacing.sm),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: Spacing.xs, vertical: Spacing.xxs),
-                  decoration: BoxDecoration(
-                    color: cs.secondaryContainer,
-                    borderRadius: BorderRadius.circular(8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.xs, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: cs.secondaryContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      package.type, 
+                      style: TextStyle(
+                        color: cs.onSecondaryContainer,
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  child: Text(package.type, style: TextStyle(color: cs.onSecondaryContainer)),
                 ),
-                const Spacer(),
+                const SizedBox(width: Spacing.xs),
                 if (qty > 0) ...[
                   IconButton(
                     onPressed: () => cartNotifier.updateLineQty(package.id, qty - 1),
-                    icon: const Icon(Icons.remove_circle_outline),
+                    icon: const Icon(Icons.remove_circle_outline, size: 20),
+                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                    padding: EdgeInsets.zero,
                   ),
-                  Text('$qty'),
+                  Text('$qty', style: const TextStyle(fontSize: 14)),
                 ],
                 IconButton(
                   onPressed: () => cartNotifier.addPackage(package),
-                  icon: const Icon(Icons.add_circle_outline),
+                  icon: const Icon(Icons.add_circle_outline, size: 20),
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  padding: EdgeInsets.zero,
                 ),
               ],
             ),
-            const Spacer(),
-            Text(package.name, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: Spacing.xs),
-            Text(package.priceText, style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              package.name, 
+              style: Theme.of(context).textTheme.titleSmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              package.priceText, 
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),

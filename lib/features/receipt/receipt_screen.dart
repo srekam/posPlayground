@@ -5,8 +5,8 @@ import '../../core/theme/tokens.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/ticket.dart';
 import '../../domain/models/cart.dart';
-import '../pos/pos_catalog_screen.dart';
 import '../pos/providers/cart_provider.dart';
+import '../pos/pos_catalog_screen.dart';
 import 'providers/ticket_provider.dart';
 
 class ReceiptScreen extends HookConsumerWidget {
@@ -143,7 +143,7 @@ class ReceiptScreen extends HookConsumerWidget {
                 const SizedBox(width: Spacing.md),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _navigateToHome(context),
+                    onPressed: () => _navigateToHome(context, ref),
                     icon: const Icon(Icons.home),
                     label: const Text('New Sale'),
                   ),
@@ -185,10 +185,48 @@ class ReceiptScreen extends HookConsumerWidget {
     );
   }
 
-  void _navigateToHome(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => PosCatalogScreen()),
-      (route) => false,
+  void _navigateToHome(BuildContext context, WidgetRef ref) {
+    // Show confirmation dialog before starting new sale
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('New Sale'),
+        content: const Text('Do you need to make new sale?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop(); // Close dialog first
+              // Use Future.delayed to ensure dialog is fully closed before navigation
+              Future.delayed(const Duration(milliseconds: 100), () {
+                _confirmNewSale(context, ref);
+              });
+            },
+            child: const Text('Yes, New Sale'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmNewSale(BuildContext context, WidgetRef ref) {
+    // Clear the cart for a new sale
+    ref.read(cartProvider.notifier).clearCart();
+    
+    // Navigate back to POS catalog using a simpler approach
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const PosCatalogScreen()),
+    );
+    
+    // Show confirmation message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('New sale started - Ready to add items'),
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 }

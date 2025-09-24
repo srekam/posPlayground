@@ -170,7 +170,7 @@ class CheckoutScreen extends HookConsumerWidget {
       Navigator.of(context).pop();
       
       // Navigate to receipt
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => ReceiptScreen(payment: payment, tickets: tickets),
         ),

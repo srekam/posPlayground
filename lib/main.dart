@@ -21,10 +21,6 @@ class App extends StatelessWidget {
               routes: [
                 GoRoute(path: '/pos', builder: (_, __) => const PosCatalogScreen()),
                 GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
-                GoRoute(
-                  path: '/receipt',
-                  builder: (_, __) => const Placeholder(), // This route is not used directly
-                ),
                 GoRoute(path: '/gate/scan', builder: (_, __) => const GateScanScreen()),
                 GoRoute(path: '/reports/shifts', builder: (_, __) => const ShiftScreen()),
               ],
