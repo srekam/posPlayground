@@ -7,6 +7,7 @@ import '../pos/providers/cart_provider.dart';
 import 'providers/payment_provider.dart';
 import '../receipt/providers/ticket_provider.dart';
 import '../receipt/receipt_screen.dart';
+import '../reports/providers/sale_list_provider.dart';
 
 class CheckoutScreen extends HookConsumerWidget {
   const CheckoutScreen({super.key});
@@ -162,6 +163,10 @@ class CheckoutScreen extends HookConsumerWidget {
       
       // Generate tickets
       final tickets = ticketGenerator.generateTicketsFromCart(cart);
+      
+      // Save sale to sale list
+      final salesNotifier = ref.read(salesProvider.notifier);
+      salesNotifier.addSale(payment, tickets);
       
       // Clear cart
       cartNotifier.clearCart();

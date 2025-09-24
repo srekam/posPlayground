@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:7
+    container_name: playpark-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: playpark123
+      MONGO_INITDB_DATABASE: playpark
+    volumes:
+      - mongo_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - playpark-network
+    # No ports exposed - internal only
+
+  # Backend API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: playpark-api
+    restart: unless-stopped
+    ports:
+      - "48080:48080"
+    environment:
+      NODE_ENV: production
+      PORT: 48080
+      MONGODB_URI: mongodb://admin:playpark123@mongo:27017/playpark?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      HMAC_SECRET_V1: ${HMAC_SECRET_V1:-your-hmac-secret-key-for-qr-signing}
+      BCRYPT_ROUNDS: 12
+      CORS_ORIGIN: http://localhost:3000,http://localhost:8080
+      LOG_LEVEL: info
+      TZ: Asia/Bangkok
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - mongo
+    networks:
+      - playpark-network
+    healthcheck:
+      test: ["CMD", "bash", "-c", "curl -f http://localhost:48080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Admin UI Service
+  admin:
+    build:
+      context: ./admin-ui
+      dockerfile: Dockerfile
+    container_name: playpark-admin
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      REACT_APP_API_URL: http://api:48080
+      REACT_APP_API_VERSION: v1
+    depends_on:
+      - api
+    networks:
+      - playpark-network
+    healthcheck:
+      test: ["CMD", "bash", "-c", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  playpark-network:
+    driver: bridge

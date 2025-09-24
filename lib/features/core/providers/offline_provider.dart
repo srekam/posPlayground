@@ -111,25 +111,6 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
     }
   }
 
-  void _updateEventStatus(OutboxEventStatus status, {String? error}) {
-    final updatedEvents = state.outboxEvents.map((event) {
-      if (event.id == event.id) {
-        return event.copyWith(
-          status: status,
-          error: error,
-          retryCount: status == OutboxEventStatus.failed ? event.retryCount + 1 : event.retryCount,
-        );
-      }
-      return event;
-    }).toList();
-
-    final pendingCount = updatedEvents.where((e) => e.status == OutboxEventStatus.queued).length;
-
-    state = state.copyWith(
-      outboxEvents: updatedEvents,
-      pendingCount: pendingCount,
-    );
-  }
 
   void retryFailedEvents() {
     final failedEvents = state.outboxEvents

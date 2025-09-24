@@ -4,10 +4,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/theme/tokens.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/ticket.dart';
-import '../../domain/models/cart.dart';
 import '../pos/providers/cart_provider.dart';
 import '../pos/pos_catalog_screen.dart';
-import 'providers/ticket_provider.dart';
 
 class ReceiptScreen extends HookConsumerWidget {
   final Payment payment;
@@ -131,17 +129,34 @@ class ReceiptScreen extends HookConsumerWidget {
             const SizedBox(height: Spacing.xl),
             
             // Actions
-            Row(
+            Column(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showReprintDialog(context),
-                    icon: const Icon(Icons.print),
-                    label: const Text('Reprint'),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showReprintDialog(context),
+                        icon: const Icon(Icons.print),
+                        label: const Text('Reprint'),
+                      ),
+                    ),
+                    const SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showRefundDialog(context, ref),
+                        icon: const Icon(Icons.undo),
+                        label: const Text('Refund'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: Spacing.md),
-                Expanded(
+                const SizedBox(height: Spacing.md),
+                SizedBox(
+                  width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () => _navigateToHome(context, ref),
                     icon: const Icon(Icons.home),
@@ -210,6 +225,87 @@ class ReceiptScreen extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _showRefundDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Process Refund'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('This will refund the entire transaction.'),
+            const SizedBox(height: Spacing.md),
+            const Text('Manager approval required:'),
+            const SizedBox(height: Spacing.sm),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Manager PIN',
+                hintText: 'Enter 4-digit PIN',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 4,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _processRefund(context, ref);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Process Refund'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _processRefund(BuildContext context, WidgetRef ref) {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: Spacing.md),
+            Text('Processing refund...'),
+          ],
+        ),
+      ),
+    );
+
+    // Simulate refund processing
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.of(context).pop(); // Close loading dialog
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Refund processed successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      
+      // Navigate back to POS catalog
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const PosCatalogScreen()),
+      );
+    });
   }
 
   void _confirmNewSale(BuildContext context, WidgetRef ref) {

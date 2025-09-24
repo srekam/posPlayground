@@ -43,4 +43,28 @@ class Package {
 
   @override
   int get hashCode => id.hashCode;
+
+  factory Package.fromJson(Map<String, dynamic> json) {
+    return Package(
+      id: json['package_id'] ?? json['id'] ?? '',
+      name: json['name'] ?? '',
+      price: (json['price'] ?? 0).toDouble(),
+      type: json['type'] ?? 'single',
+      quotaOrMinutes: json['quota_or_minutes'],
+      bindDeviceIds: json['allowed_devices'] != null 
+          ? List<String>.from(json['allowed_devices'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'package_id': id,
+      'name': name,
+      'price': price,
+      'type': type,
+      'quota_or_minutes': quotaOrMinutes,
+      'allowed_devices': bindDeviceIds,
+    };
+  }
 }
