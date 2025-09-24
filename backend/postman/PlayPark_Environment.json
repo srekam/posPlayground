@@ -1,0 +1,67 @@
+{
+  "id": "playpark-env",
+  "name": "PlayPark Development",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:48080/v1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "deviceToken",
+      "value": "pos-token-1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "gateToken",
+      "value": "gate-token-1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "kioskToken",
+      "value": "kiosk-token-1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "storeId",
+      "value": "store_demo_01",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "tenantId",
+      "value": "tenant_demo_01",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "employeeEmail",
+      "value": "manager@playpark.demo",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "employeePin",
+      "value": "1234",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "siteKey",
+      "value": "tenant_demo_01:store_demo_01:demo-secret-key",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

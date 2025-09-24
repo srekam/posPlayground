@@ -139,21 +139,34 @@ class PosCatalogScreen extends HookConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: AdaptiveFloatingActionButton(
-        requiredCapability: 'can_sell',
-        onPressed: cart.isNotEmpty 
-            ? () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const CheckoutScreen()),
-                )
-            : null,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.shopping_cart_checkout),
-            const SizedBox(width: 8),
-            Text(cart.isNotEmpty ? 'Checkout (${cart.totalItems})' : 'Empty Cart'),
-          ],
-        ),
+      floatingActionButton: LayoutBuilder(
+        builder: (context, constraints) {
+          // Only show FloatingActionButton on narrow screens (when cart panel isn't visible)
+          if (constraints.maxWidth >= 900) {
+            return const SizedBox.shrink(); // Hide on wide screens
+          }
+          
+          return AdaptiveFloatingActionButton(
+            requiredCapability: 'can_sell',
+            onPressed: cart.isNotEmpty 
+                ? () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+                    )
+                : null,
+            child: cart.isNotEmpty
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.shopping_cart_checkout),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text('Checkout (${cart.totalItems})'),
+                      ),
+                    ],
+                  )
+                : const Icon(Icons.shopping_cart_outlined),
+          );
+        },
       ),
     );
   }
@@ -384,6 +397,20 @@ class _CartPanel extends HookConsumerWidget {
                   const Expanded(child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
                   Text(cart.grandTotalText, style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
+              ),
+              const SizedBox(height: Spacing.md),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+                  ),
+                  icon: const Icon(Icons.shopping_cart_checkout),
+                  label: const Text('Checkout'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: Spacing.md),
+                  ),
+                ),
               ),
             ],
           ],

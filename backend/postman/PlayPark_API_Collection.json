@@ -1,0 +1,380 @@
+{
+  "info": {
+    "name": "PlayPark Backend API",
+    "description": "Complete API collection for PlayPark POS system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:48080/v1",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "deviceToken",
+      "value": "pos-token-1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Device Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"pos-device-001\",\n  \"device_token\": \"{{deviceToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/device/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "device", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('authToken', response.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Employee Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@playpark.demo\",\n  \"pin\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('authToken', response.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "Get Packages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/catalog/packages?store_id=store_demo_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["catalog", "packages"],
+              "query": [
+                {
+                  "key": "store_id",
+                  "value": "store_demo_01"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Pricing Rules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/catalog/pricing-rules?store_id=store_demo_01",
+              "host": ["{{baseUrl}}"],
+              "path": ["catalog", "pricing-rules"],
+              "query": [
+                {
+                  "key": "store_id",
+                  "value": "store_demo_01"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        {
+          "name": "Create Sale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "sale_{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"pos-device-001\",\n  \"cashier_id\": \"emp_001\",\n  \"items\": [\n    {\n      \"package_id\": \"pkg_001\",\n      \"qty\": 2,\n      \"price\": 150,\n      \"discounts\": [\n        {\n          \"type\": \"percentage\",\n          \"amount\": 10,\n          \"reason\": \"Early bird\"\n        }\n      ]\n    }\n  ],\n  \"subtotal\": 300,\n  \"discount_total\": 30,\n  \"tax_total\": 18.9,\n  \"grand_total\": 288.9,\n  \"payment_method\": \"cash\",\n  \"amount_tendered\": 300,\n  \"change\": 11.1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sales",
+              "host": ["{{baseUrl}}"],
+              "path": ["sales"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tickets",
+      "item": [
+        {
+          "name": "Redeem Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qr_token\": \"qr_token_001\",\n  \"device_id\": \"gate-device-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tickets/redeem",
+              "host": ["{{baseUrl}}"],
+              "path": ["tickets", "redeem"]
+            }
+          }
+        },
+        {
+          "name": "Get Ticket Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tickets/tkt_001",
+              "host": ["{{baseUrl}}"],
+              "path": ["tickets", "tkt_001"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shifts",
+      "item": [
+        {
+          "name": "Open Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employee_id\": \"emp_001\",\n  \"cash_open\": 1000.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/shifts/open",
+              "host": ["{{baseUrl}}"],
+              "path": ["shifts", "open"]
+            }
+          }
+        },
+        {
+          "name": "Close Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employee_id\": \"emp_001\",\n  \"cash_counted\": 1250.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/shifts/close",
+              "host": ["{{baseUrl}}"],
+              "path": ["shifts", "close"]
+            }
+          }
+        },
+        {
+          "name": "Get Current Shift",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/shifts/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["shifts", "current"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Sales Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/sales?start_date=2025-09-24&end_date=2025-09-24",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "sales"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-09-24"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-09-24"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ticket Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/tickets?start_date=2025-09-24&end_date=2025-09-24",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "tickets"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-09-24"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-09-24"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

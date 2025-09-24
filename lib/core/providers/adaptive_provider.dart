@@ -181,9 +181,9 @@ class AdaptiveMode {
         capabilities = const {
           'can_sync': false,
           'can_sell': true,
-          'can_redeem': false,
+          'can_redeem': true,  // Allow QR scanning in offline mode
           'can_refresh_data': false,
-          'can_access_reports': false,
+          'can_access_reports': true,  // Allow reports in offline mode
           'can_use_cached_data': true,
         };
 
@@ -193,9 +193,9 @@ class AdaptiveMode {
         capabilities = const {
           'can_sync': false,
           'can_sell': true,
-          'can_redeem': false,
+          'can_redeem': true,  // Allow QR scanning in degraded mode
           'can_refresh_data': false,
-          'can_access_reports': false,
+          'can_access_reports': true,  // Allow reports in degraded mode
           'can_use_cached_data': true,
           'can_retry_connection': true,
         };

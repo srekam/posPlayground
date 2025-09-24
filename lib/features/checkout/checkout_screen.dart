@@ -118,21 +118,25 @@ class CheckoutScreen extends HookConsumerWidget {
                 ),
               ),
             
-            const SizedBox(height: Spacing.xl),
+            const SizedBox(height: Spacing.lg),
             
-            // Complete Payment Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: paymentNotifier.canCompletePayment(cart.grandTotal)
-                    ? () => _completePayment(context, ref, cart)
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: Spacing.md),
-                ),
-                child: Text(
-                  'Complete Payment (${cart.grandTotalText})',
-                  style: const TextStyle(fontSize: 18),
+            // Complete Payment Button - Fixed at bottom
+            Container(
+              padding: const EdgeInsets.only(bottom: Spacing.md),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: paymentNotifier.canCompletePayment(cart.grandTotal)
+                      ? () => _completePayment(context, ref, cart)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: Spacing.md),
+                  ),
+                  icon: const Icon(Icons.payment),
+                  label: Text(
+                    'Complete Payment (${cart.grandTotalText})',
+                    style: const TextStyle(fontSize: 18),
+                  ),
                 ),
               ),
             ),
