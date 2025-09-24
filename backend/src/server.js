@@ -24,6 +24,7 @@ const reportsRoutes = require('./routes/reports');
 const settingsRoutes = require('./routes/settings');
 const webhooksRoutes = require('./routes/webhooks');
 const syncRoutes = require('./routes/sync');
+const providerRoutes = require('./routes/provider');
 
 const app = express();
 const PORT = process.env.PORT || 48080;
@@ -80,6 +81,9 @@ app.use(`/${process.env.API_VERSION || 'v1'}/reports`, reportsRoutes);
 app.use(`/${process.env.API_VERSION || 'v1'}/settings`, settingsRoutes);
 app.use(`/${process.env.API_VERSION || 'v1'}/webhooks`, webhooksRoutes);
 app.use(`/${process.env.API_VERSION || 'v1'}/sync`, syncRoutes);
+
+// Provider routes (Phase 6 - Advanced Reporting & Analytics)
+app.use('/provider', providerRoutes);
 
 // Admin UI static files (if exists)
 app.use('/admin', express.static('admin-ui/dist'));
