@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "playpark-api"
-version = "1.0.0"
+version = "0.1.13"
 description = "PlayPark POS Backend API - FastAPI Implementation"
 authors = [{name = "PlayPark Team", email = "team@playpark.com"}]
 license = {text = "MIT"}
