@@ -29,7 +29,8 @@ final deviceAuthStatusProvider = FutureProvider<Map<String, dynamic>>((ref) {
 });
 
 // Adaptive mode provider
-final adaptiveProvider = StateNotifierProvider<AdaptiveModeNotifier, AdaptiveState>((ref) {
+final adaptiveProvider =
+    StateNotifierProvider<AdaptiveModeNotifier, AdaptiveState>((ref) {
   return AdaptiveModeNotifier(ref);
 });
 
@@ -41,7 +42,7 @@ class AdaptiveModeNotifier extends StateNotifier<AdaptiveState> {
   AdaptiveModeNotifier(this._ref)
       : _connectivityService = _ref.read(connectivityServiceProvider),
         _deviceAuthService = _ref.read(deviceAuthServiceProvider),
-        super(AdaptiveState(mode: AdaptiveMode.initializing())) {
+        super(AdaptiveState(mode: const AdaptiveMode.initializing())) {
     // Initialize asynchronously without blocking UI
     _initializeAsync();
   }
@@ -53,7 +54,7 @@ class AdaptiveModeNotifier extends StateNotifier<AdaptiveState> {
         await _initialize();
       } catch (e) {
         // If initialization fails, set to offline mode
-        state = AdaptiveState(mode: AdaptiveMode.offline());
+        state = AdaptiveState(mode: const AdaptiveMode.offline());
       }
     });
   }
@@ -61,7 +62,7 @@ class AdaptiveModeNotifier extends StateNotifier<AdaptiveState> {
   Future<void> _initialize() async {
     // On web, skip heavy initialization and set to offline mode
     if (kIsWeb) {
-      state = AdaptiveState(mode: AdaptiveMode.offline());
+      state = AdaptiveState(mode: const AdaptiveMode.offline());
       return;
     }
 
@@ -120,7 +121,7 @@ class AdaptiveModeNotifier extends StateNotifier<AdaptiveState> {
 
   // Switch to offline mode manually
   void switchToOffline() {
-    state = AdaptiveState(mode: AdaptiveMode.offline());
+    state = AdaptiveState(mode: const AdaptiveMode.offline());
   }
 
   // Switch to online mode manually
@@ -181,9 +182,9 @@ class AdaptiveMode {
         capabilities = const {
           'can_sync': false,
           'can_sell': true,
-          'can_redeem': true,  // Allow QR scanning in offline mode
+          'can_redeem': true, // Allow QR scanning in offline mode
           'can_refresh_data': false,
-          'can_access_reports': true,  // Allow reports in offline mode
+          'can_access_reports': true, // Allow reports in offline mode
           'can_use_cached_data': true,
         };
 
@@ -193,9 +194,9 @@ class AdaptiveMode {
         capabilities = const {
           'can_sync': false,
           'can_sell': true,
-          'can_redeem': true,  // Allow QR scanning in degraded mode
+          'can_redeem': true, // Allow QR scanning in degraded mode
           'can_refresh_data': false,
-          'can_access_reports': true,  // Allow reports in degraded mode
+          'can_access_reports': true, // Allow reports in degraded mode
           'can_use_cached_data': true,
           'can_retry_connection': true,
         };
@@ -291,15 +292,15 @@ final canUseCachedDataProvider = Provider<bool>((ref) {
 final connectionSummaryProvider = Provider<Map<String, dynamic>>((ref) {
   final adaptiveState = ref.watch(adaptiveProvider);
   final connectionStatus = ref.watch(connectionStatusProvider).whenOrNull(
-    data: (status) => status.name,
-    loading: () => 'checking',
-    error: (_, __) => 'error',
-  );
+        data: (status) => status.name,
+        loading: () => 'checking',
+        error: (_, __) => 'error',
+      );
   final backendStatus = ref.watch(backendStatusProvider).whenOrNull(
-    data: (status) => status.name,
-    loading: () => 'checking',
-    error: (_, __) => 'error',
-  );
+        data: (status) => status.name,
+        loading: () => 'checking',
+        error: (_, __) => 'error',
+      );
 
   return {
     'adaptive_mode': adaptiveState.mode.type.name,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../features/core/providers/sync_provider.dart';
@@ -28,7 +27,8 @@ class SyncStatusWidget extends HookConsumerWidget {
     );
   }
 
-  Widget _buildSyncStatus(BuildContext context, SyncStatus syncStatus, SyncNotifier syncNotifier) {
+  Widget _buildSyncStatus(
+      BuildContext context, SyncStatus syncStatus, SyncNotifier syncNotifier) {
     if (!syncStatus.hasUnsyncedData) {
       return const _SyncStatusIndicator(
         icon: Icons.cloud_done,
@@ -47,7 +47,8 @@ class SyncStatusWidget extends HookConsumerWidget {
     );
   }
 
-  void _showSyncDialog(BuildContext context, SyncStatus syncStatus, SyncNotifier syncNotifier) {
+  void _showSyncDialog(
+      BuildContext context, SyncStatus syncStatus, SyncNotifier syncNotifier) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

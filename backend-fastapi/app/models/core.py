@@ -137,3 +137,23 @@ class ApiKey(BaseDocument):
     
     class Config:
         collection = "api_keys"
+
+
+class EnrollToken(BaseDocument):
+    """Enrollment token model for device pairing"""
+    
+    token: str = Field(..., description="Enrollment token (unique)")
+    tenant_id: str = Field(..., description="Parent tenant ID")
+    store_id: str = Field(..., description="Parent store ID")
+    device_type: str = Field(..., description="Target device type: POS, GATE, KIOSK")
+    ttl_minutes: int = Field(default=15, description="Time to live in minutes")
+    status: str = Field(default="unused", description="Token status: unused, used, revoked, expired")
+    created_by: str = Field(..., description="Creator user ID")
+    used_at: Optional[datetime] = Field(default=None, description="Usage timestamp")
+    used_by_device: Optional[str] = Field(default=None, description="Device ID that used this token")
+    revoked_at: Optional[datetime] = Field(default=None, description="Revocation timestamp")
+    revoked_by: Optional[str] = Field(default=None, description="User ID who revoked this token")
+    expires_at: datetime = Field(..., description="Expiration timestamp")
+    
+    class Config:
+        collection = "enroll_tokens"

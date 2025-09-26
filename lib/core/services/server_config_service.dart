@@ -3,22 +3,21 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/server_config.dart';
-import '../config/app_config.dart';
 
 class ServerConfigService {
   static const String _configKey = 'server_config';
   static const String _apiKeyKey = 'api_key_info';
-  
+
   static ServerConfig? _cachedConfig;
   static ApiKeyInfo? _cachedApiKey;
 
   // Get current server configuration
   static Future<ServerConfig> getCurrentConfig() async {
     if (_cachedConfig != null) return _cachedConfig!;
-    
+
     final prefs = await SharedPreferences.getInstance();
     final configJson = prefs.getString(_configKey);
-    
+
     if (configJson != null) {
       _cachedConfig = ServerConfig.fromJson(jsonDecode(configJson));
     } else {
@@ -28,7 +27,7 @@ class ServerConfigService {
         protocol: 'http',
       );
     }
-    
+
     return _cachedConfig!;
   }
 
@@ -42,14 +41,14 @@ class ServerConfigService {
   // Get current API key
   static Future<ApiKeyInfo?> getCurrentApiKey() async {
     if (_cachedApiKey != null) return _cachedApiKey;
-    
+
     final prefs = await SharedPreferences.getInstance();
     final apiKeyJson = prefs.getString(_apiKeyKey);
-    
+
     if (apiKeyJson != null) {
       _cachedApiKey = ApiKeyInfo.fromJson(jsonDecode(apiKeyJson));
     }
-    
+
     return _cachedApiKey;
   }
 
@@ -72,22 +71,22 @@ class ServerConfigService {
     try {
       final client = HttpClient();
       client.connectionTimeout = config.timeout;
-      
+
       final uri = Uri.parse('${config.baseUrl}/health');
       final request = await client.getUrl(uri);
-      
+
       // Add headers
       config.requestHeaders.forEach((key, value) {
         request.headers.set(key, value);
       });
-      
+
       final response = await request.close();
       client.close();
-      
+
       if (response.statusCode == 200) {
         final body = await response.transform(utf8.decoder).join();
         final data = jsonDecode(body);
-        
+
         return ServerTestResult.success(
           'Connection successful',
           data: data,
@@ -124,36 +123,38 @@ class ServerConfigService {
     try {
       final client = http.Client();
       final uri = Uri.parse('${config.apiBaseUrl}/devices/api-key/generate');
-      
-      final response = await client.post(
-        uri,
-        headers: config.requestHeaders,
-        body: jsonEncode({
-          'device_id': deviceId,
-          'device_name': deviceName,
-          'permissions': permissions,
-        }),
-      ).timeout(config.timeout);
+
+      final response = await client
+          .post(
+            uri,
+            headers: config.requestHeaders,
+            body: jsonEncode({
+              'device_id': deviceId,
+              'device_name': deviceName,
+              'permissions': permissions,
+            }),
+          )
+          .timeout(config.timeout);
 
       client.close();
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        
+
         if (data['success'] == true && data['data'] != null) {
           final apiKeyData = data['data'];
           final apiKey = ApiKeyInfo(
             key: apiKeyData['api_key'],
             encodedKey: ApiKeyInfo.encodeApiKey(apiKeyData['api_key']),
             createdAt: DateTime.parse(apiKeyData['created_at']),
-            expiresAt: apiKeyData['expires_at'] != null 
-                ? DateTime.parse(apiKeyData['expires_at']) 
+            expiresAt: apiKeyData['expires_at'] != null
+                ? DateTime.parse(apiKeyData['expires_at'])
                 : null,
             permissions: List<String>.from(apiKeyData['permissions'] ?? []),
             deviceId: deviceId,
             name: deviceName,
           );
-          
+
           return ApiKeyGenerationResult.success(apiKey);
         } else {
           return ApiKeyGenerationResult.error(
@@ -181,21 +182,23 @@ class ServerConfigService {
     try {
       final client = http.Client();
       final uri = Uri.parse('${config.apiBaseUrl}/auth/validate-api-key');
-      
-      final response = await client.post(
-        uri,
-        headers: {
-          ...config.requestHeaders,
-          'X-API-Key': apiKey,
-        },
-        body: jsonEncode({}),
-      ).timeout(config.timeout);
+
+      final response = await client
+          .post(
+            uri,
+            headers: {
+              ...config.requestHeaders,
+              'X-API-Key': apiKey,
+            },
+            body: jsonEncode({}),
+          )
+          .timeout(config.timeout);
 
       client.close();
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         if (data['success'] == true) {
           return ApiKeyValidationResult.success(
             'API key is valid',
@@ -226,26 +229,28 @@ class ServerConfigService {
     try {
       final client = http.Client();
       final uri = Uri.parse('${config.apiBaseUrl}/devices/online');
-      
-      final response = await client.get(
-        uri,
-        headers: config.requestHeaders,
-      ).timeout(config.timeout);
+
+      final response = await client
+          .get(
+            uri,
+            headers: config.requestHeaders,
+          )
+          .timeout(config.timeout);
 
       client.close();
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         if (data['success'] == true) {
-          final devices = (data['data'] as List).map((device) => 
-            OnlineDevice.fromJson(device)
-          ).toList();
-          
+          final devices = (data['data'] as List)
+              .map((device) => OnlineDevice.fromJson(device))
+              .toList();
+
           return devices;
         }
       }
-      
+
       return [];
     } catch (e) {
       return [];
@@ -256,7 +261,7 @@ class ServerConfigService {
   static Future<void> resetToDefault() async {
     _cachedConfig = null;
     _cachedApiKey = null;
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_configKey);
     await prefs.remove(_apiKeyKey);
@@ -270,9 +275,10 @@ class ServerTestResult {
 
   const ServerTestResult._(this.isSuccess, this.message, {this.data});
 
-  factory ServerTestResult.success(String message, {Map<String, dynamic>? data}) =>
+  factory ServerTestResult.success(String message,
+          {Map<String, dynamic>? data}) =>
       ServerTestResult._(true, message, data: data);
-  
+
   factory ServerTestResult.error(String message) =>
       ServerTestResult._(false, message);
 }
@@ -285,8 +291,9 @@ class ApiKeyGenerationResult {
   const ApiKeyGenerationResult._(this.isSuccess, this.message, {this.apiKey});
 
   factory ApiKeyGenerationResult.success(ApiKeyInfo apiKey) =>
-      ApiKeyGenerationResult._(true, 'API key generated successfully', apiKey: apiKey);
-  
+      ApiKeyGenerationResult._(true, 'API key generated successfully',
+          apiKey: apiKey);
+
   factory ApiKeyGenerationResult.error(String message) =>
       ApiKeyGenerationResult._(false, message);
 }
@@ -296,11 +303,13 @@ class ApiKeyValidationResult {
   final String message;
   final List<String> permissions;
 
-  const ApiKeyValidationResult._(this.isValid, this.message, {this.permissions = const []});
+  const ApiKeyValidationResult._(this.isValid, this.message,
+      {this.permissions = const []});
 
-  factory ApiKeyValidationResult.success(String message, {List<String> permissions = const []}) =>
+  factory ApiKeyValidationResult.success(String message,
+          {List<String> permissions = const []}) =>
       ApiKeyValidationResult._(true, message, permissions: permissions);
-  
+
   factory ApiKeyValidationResult.error(String message) =>
       ApiKeyValidationResult._(false, message);
 }
@@ -330,7 +339,8 @@ class OnlineDevice {
       deviceName: json['device_name'] ?? '',
       deviceType: json['device_type'] ?? 'unknown',
       status: json['status'] ?? 'offline',
-      lastSeen: DateTime.parse(json['last_seen'] ?? DateTime.now().toIso8601String()),
+      lastSeen:
+          DateTime.parse(json['last_seen'] ?? DateTime.now().toIso8601String()),
       ipAddress: json['ip_address'],
       permissions: List<String>.from(json['permissions'] ?? []),
     );

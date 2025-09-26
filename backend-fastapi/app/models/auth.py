@@ -134,3 +134,55 @@ class PasswordReset(BaseDocument):
     
     class Config:
         collection = "password_resets"
+
+
+class DeviceEnrollRequest(BaseModel):
+    """Device enrollment request"""
+    
+    enroll_token: str = Field(..., description="Enrollment token")
+    device_type: str = Field(..., description="Device type: POS, GATE, KIOSK")
+    app_version: str = Field(..., description="App version")
+    device_fingerprint: str = Field(..., description="Device fingerprint")
+
+
+class DeviceEnrollResponse(BaseModel):
+    """Device enrollment response"""
+    
+    device_id: str = Field(..., description="Device ID")
+    device_token: str = Field(..., description="Device token")
+    tenant_id: str = Field(..., description="Tenant ID")
+    store_id: str = Field(..., description="Store ID")
+    caps: List[str] = Field(..., description="Device capabilities")
+    server_time: datetime = Field(..., description="Server time")
+    min_app_version: str = Field(..., description="Minimum app version")
+
+
+class PairingPayload(BaseModel):
+    """Pairing payload for QR/Link/Key"""
+    
+    v: int = Field(default=1, description="Version")
+    tid: str = Field(..., description="Tenant ID")
+    sid: str = Field(..., description="Store ID")
+    dt: str = Field(..., description="Device type")
+    et: str = Field(..., description="Enrollment token")
+    exp: datetime = Field(..., description="Expiration")
+    sig: str = Field(..., description="HMAC signature")
+
+
+class GeneratePairingRequest(BaseModel):
+    """Generate pairing request"""
+    
+    store_id: str = Field(..., description="Store ID")
+    device_type: str = Field(..., description="Device type: POS, GATE, KIOSK")
+    ttl_minutes: int = Field(default=15, description="Time to live in minutes")
+
+
+class GeneratePairingResponse(BaseModel):
+    """Generate pairing response"""
+    
+    enroll_token: str = Field(..., description="Enrollment token")
+    qr_payload: str = Field(..., description="QR code payload (base64url)")
+    deep_link: str = Field(..., description="Deep link URL")
+    manual_key: str = Field(..., description="Manual key (base32)")
+    expires_at: datetime = Field(..., description="Expiration timestamp")
+    expires_in_minutes: int = Field(..., description="Minutes until expiration")

@@ -16,7 +16,18 @@ from app.models.auth import TokenPayload, TokenType
 from app.utils.errors import PlayParkException, ErrorCode
 from app.repositories.auth import AuthRepository
 from app.repositories.users import UserRepository
+from app.repositories.sales import SalesRepository
+from app.repositories.catalog import CatalogRepository
+from app.repositories.shifts import ShiftRepository
+from app.repositories.reports import ReportRepository
+from app.repositories.tickets import TicketRepository
+from app.repositories.enrollment import EnrollmentRepository
 from app.services.auth import AuthService
+from app.services.sales import SalesService
+from app.services.catalog import CatalogService
+from app.services.shifts import ShiftService
+from app.services.reports import ReportService
+from app.services.enrollment import EnrollmentService
 
 logger = structlog.get_logger(__name__)
 
@@ -44,12 +55,75 @@ async def get_user_repository(db: AsyncIOMotorDatabase = Depends(get_db)) -> Use
     return UserRepository(db)
 
 
+async def get_sales_repository(db: AsyncIOMotorDatabase = Depends(get_db)) -> SalesRepository:
+    """Get sales repository dependency"""
+    return SalesRepository(db)
+
+
+async def get_catalog_repository(db: AsyncIOMotorDatabase = Depends(get_db)) -> CatalogRepository:
+    """Get catalog repository dependency"""
+    return CatalogRepository(db)
+
+
+async def get_shift_repository(db: AsyncIOMotorDatabase = Depends(get_db)) -> ShiftRepository:
+    """Get shift repository dependency"""
+    return ShiftRepository(db)
+
+
+async def get_report_repository(db: AsyncIOMotorDatabase = Depends(get_db)) -> ReportRepository:
+    """Get report repository dependency"""
+    return ReportRepository(db)
+
+
+async def get_ticket_repository(db: AsyncIOMotorDatabase = Depends(get_db)) -> TicketRepository:
+    """Get ticket repository dependency"""
+    return TicketRepository(db)
+
+
+async def get_enrollment_repository(db: AsyncIOMotorDatabase = Depends(get_db)) -> EnrollmentRepository:
+    """Get enrollment repository dependency"""
+    return EnrollmentRepository(db)
+
+
 async def get_auth_service(
     auth_repo: AuthRepository = Depends(get_auth_repository),
     user_repo: UserRepository = Depends(get_user_repository)
 ) -> AuthService:
     """Get auth service dependency"""
     return AuthService(auth_repo, user_repo)
+
+
+async def get_sales_service(sales_repo: SalesRepository = Depends(get_sales_repository)) -> SalesService:
+    """Get sales service dependency"""
+    return SalesService(sales_repo)
+
+
+async def get_catalog_service(catalog_repo: CatalogRepository = Depends(get_catalog_repository)) -> CatalogService:
+    """Get catalog service dependency"""
+    return CatalogService(catalog_repo)
+
+
+async def get_shift_service(shift_repo: ShiftRepository = Depends(get_shift_repository)) -> ShiftService:
+    """Get shift service dependency"""
+    return ShiftService(shift_repo)
+
+
+async def get_report_service(
+    report_repo: ReportRepository = Depends(get_report_repository),
+    sales_repo: SalesRepository = Depends(get_sales_repository),
+    shift_repo: ShiftRepository = Depends(get_shift_repository),
+    ticket_repo: TicketRepository = Depends(get_ticket_repository)
+) -> ReportService:
+    """Get report service dependency"""
+    return ReportService(report_repo, sales_repo, shift_repo, ticket_repo)
+
+
+async def get_enrollment_service(
+    enrollment_repo: EnrollmentRepository = Depends(get_enrollment_repository),
+    user_repo: UserRepository = Depends(get_user_repository)
+) -> EnrollmentService:
+    """Get enrollment service dependency"""
+    return EnrollmentService(enrollment_repo, user_repo)
 
 
 def verify_jwt_token(token: str) -> TokenPayload:
@@ -112,7 +186,7 @@ async def get_current_user(
         )
     
     # Get user from database
-    user = await user_repo.get_by_id(token.sub)
+    user = await user_repo.get_by_employee_id(token.sub)
     if not user:
         raise PlayParkException(
             error_code=ErrorCode.USER_NOT_FOUND,

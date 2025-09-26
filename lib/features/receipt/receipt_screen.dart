@@ -10,9 +10,9 @@ import '../pos/pos_catalog_screen.dart';
 class ReceiptScreen extends HookConsumerWidget {
   final Payment payment;
   final List<Ticket> tickets;
-  
+
   const ReceiptScreen({
-    super.key, 
+    super.key,
     required this.payment,
     this.tickets = const [],
   });
@@ -63,9 +63,9 @@ class ReceiptScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: Spacing.md),
-            
+
             // Payment Summary
             Card(
               child: Padding(
@@ -73,7 +73,8 @@ class ReceiptScreen extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Payment Summary', style: Theme.of(context).textTheme.titleLarge),
+                    Text('Payment Summary',
+                        style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: Spacing.sm),
                     Row(
                       children: [
@@ -85,7 +86,9 @@ class ReceiptScreen extends HookConsumerWidget {
                     Row(
                       children: [
                         const Expanded(child: Text('Amount:')),
-                        Text(payment.amountText, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text(payment.amountText,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                     if (payment.tenderedAmount != null) ...[
@@ -93,18 +96,20 @@ class ReceiptScreen extends HookConsumerWidget {
                       Row(
                         children: [
                           const Expanded(child: Text('Tendered:')),
-                          Text('฿${payment.tenderedAmount!.toStringAsFixed(0)}'),
+                          Text(
+                              '฿${payment.tenderedAmount!.toStringAsFixed(0)}'),
                         ],
                       ),
                     ],
-                    if (payment.changeAmount != null && payment.changeAmount! > 0) ...[
+                    if (payment.changeAmount != null &&
+                        payment.changeAmount! > 0) ...[
                       const SizedBox(height: Spacing.xs),
                       Row(
                         children: [
                           const Expanded(child: Text('Change:')),
                           Text(
                             payment.changeText,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.green,
                             ),
@@ -116,18 +121,19 @@ class ReceiptScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: Spacing.md),
-            
+
             // Tickets
             if (tickets.isNotEmpty) ...[
-              Text('Tickets Issued', style: Theme.of(context).textTheme.titleLarge),
+              Text('Tickets Issued',
+                  style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: Spacing.sm),
               ...tickets.map((ticket) => _TicketCard(ticket: ticket)),
             ],
-            
+
             const SizedBox(height: Spacing.xl),
-            
+
             // Actions
             Column(
               children: [
@@ -232,15 +238,15 @@ class ReceiptScreen extends HookConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Process Refund'),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('This will refund the entire transaction.'),
-            const SizedBox(height: Spacing.md),
-            const Text('Manager approval required:'),
-            const SizedBox(height: Spacing.sm),
+            Text('This will refund the entire transaction.'),
+            SizedBox(height: Spacing.md),
+            Text('Manager approval required:'),
+            SizedBox(height: Spacing.sm),
             TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Manager PIN',
                 hintText: 'Enter 4-digit PIN',
                 border: OutlineInputBorder(),
@@ -291,7 +297,7 @@ class ReceiptScreen extends HookConsumerWidget {
     // Simulate refund processing
     Future.delayed(const Duration(seconds: 2), () {
       Navigator.of(context).pop(); // Close loading dialog
-      
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -300,7 +306,7 @@ class ReceiptScreen extends HookConsumerWidget {
           duration: Duration(seconds: 3),
         ),
       );
-      
+
       // Navigate back to POS catalog
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const PosCatalogScreen()),
@@ -311,12 +317,12 @@ class ReceiptScreen extends HookConsumerWidget {
   void _confirmNewSale(BuildContext context, WidgetRef ref) {
     // Clear the cart for a new sale
     ref.read(cartProvider.notifier).clearCart();
-    
+
     // Navigate back to POS catalog using a simpler approach
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const PosCatalogScreen()),
     );
-    
+
     // Show confirmation message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

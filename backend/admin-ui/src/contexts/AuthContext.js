@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -23,16 +22,22 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        const response = await axios.get('/v1/employees/me');
-        setUser(response.data.data);
+      const userData = localStorage.getItem('admin_user');
+      
+      if (token && userData) {
+        // Use stored user data instead of API call
+        const user = JSON.parse(userData);
+        setUser(user);
         setIsAuthenticated(true);
+      } else {
+        // Clear invalid data
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('admin_token');
-      delete axios.defaults.headers.common['Authorization'];
+      localStorage.removeItem('admin_user');
     } finally {
       setLoading(false);
     }
@@ -40,16 +45,33 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, pin) => {
     try {
-      const response = await axios.post('/v1/employees/login', {
-        email,
-        pin
+      // Use real backend API for authentication
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:50080'}/api/v1/auth/employees/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          pin: pin
+        })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.message || 'Login failed' 
+        };
+      }
+
+      const data = await response.json();
       
-      const { token, employee } = response.data.data;
-      localStorage.setItem('admin_token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Store token and user data
+      localStorage.setItem('admin_token', data.token);
+      localStorage.setItem('admin_user', JSON.stringify(data.employee));
       
-      setUser(employee);
+      setUser(data.employee);
       setIsAuthenticated(true);
       
       return { success: true };
@@ -57,14 +79,14 @@ export const AuthProvider = ({ children }) => {
       console.error('Login failed:', error);
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Login failed' 
+        error: error.message || 'Network error occurred' 
       };
     }
   };
 
   const logout = () => {
     localStorage.removeItem('admin_token');
-    delete axios.defaults.headers.common['Authorization'];
+    localStorage.removeItem('admin_user');
     setUser(null);
     setIsAuthenticated(false);
   };

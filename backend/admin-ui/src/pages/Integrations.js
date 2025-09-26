@@ -5,11 +5,6 @@ import {
   Typography,
   Grid,
   Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -29,7 +24,7 @@ import {
   CardContent,
 } from '@mui/material';
 import { Add, Edit, Delete, Webhook, Payment, Print } from '@mui/icons-material';
-import axios from 'axios';
+import apiClient from '../config/api';
 
 export default function Integrations() {
   const [loading, setLoading] = useState(false);
@@ -50,9 +45,9 @@ export default function Integrations() {
       setLoading(true);
       
       const [webhooksRes, paymentRes, printersRes] = await Promise.all([
-        axios.get('/v1/webhooks'),
-        axios.get('/v1/settings/payment-methods'),
-        axios.get('/v1/settings/printers')
+        apiClient.get('/v1/webhooks'),
+        apiClient.get('/v1/settings/payment-methods'),
+        apiClient.get('/v1/settings/printers')
       ]);
 
       setWebhooks(webhooksRes.data.data || []);
@@ -75,7 +70,7 @@ export default function Integrations() {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     
     try {
-      await axios.delete(`/v1/${activeTab}/${id}`);
+      await apiClient.delete(`/v1/${activeTab}/${id}`);
       fetchData();
     } catch (err) {
       console.error('Failed to delete item:', err);
@@ -85,7 +80,7 @@ export default function Integrations() {
 
   const handleTestWebhook = async (id) => {
     try {
-      await axios.post(`/v1/webhooks/${id}/test`);
+      await apiClient.post(`/v1/webhooks/${id}/test`);
       alert('Test webhook sent successfully');
     } catch (err) {
       console.error('Failed to test webhook:', err);

@@ -53,7 +53,7 @@ services:
       # Application
       ENVIRONMENT: development
       DEBUG: "true"
-      PORT: 48080
+      PORT: 50080
       
       # Security
       SECRET_KEY: "your-super-secret-key-change-in-production"
@@ -70,7 +70,7 @@ services:
       REDIS_MAX_CONNECTIONS: 20
       
       # CORS
-      CORS_ORIGINS: "http://localhost:3000,http://localhost:8080,http://localhost:48080"
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:8080,http://localhost:50080"
       
       # Rate Limiting
       RATE_LIMIT_ENABLED: "true"
@@ -89,7 +89,7 @@ services:
       # Monitoring
       ENABLE_METRICS: "true"
     ports:
-      - "48080:48080"
+      - "50080:50080"
     volumes:
       - ./logs:/app/logs
     networks:
@@ -100,7 +100,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:48080/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:50080/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3

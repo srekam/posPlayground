@@ -49,7 +49,7 @@ class _ApprovalPinDialogState extends State<ApprovalPinDialog> {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: Spacing.md),
-          
+
           // Reason field
           TextField(
             controller: _reasonController,
@@ -60,9 +60,9 @@ class _ApprovalPinDialogState extends State<ApprovalPinDialog> {
             ),
             maxLines: 2,
           ),
-          
+
           const SizedBox(height: Spacing.md),
-          
+
           // Supervisor PIN field
           TextField(
             controller: _pinController,
@@ -79,10 +79,12 @@ class _ApprovalPinDialogState extends State<ApprovalPinDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _isLoading ? null : () {
-            Navigator.of(context).pop();
-            widget.onResult(false, null);
-          },
+          onPressed: _isLoading
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                  widget.onResult(false, null);
+                },
           child: const Text('Cancel'),
         ),
         ElevatedButton(
@@ -140,7 +142,7 @@ class ApprovalRequiredDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('${action.actionDisplayName} Requires Approval'),
-      content: Text(
+      content: const Text(
         'This action requires supervisor approval. Please contact a supervisor.',
       ),
       actions: [

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../data/database/database_test_helper.dart';
-import '../../data/database/database_helper.dart';
 import '../../data/repositories/offline_package_repository.dart';
 import '../../domain/models/package.dart';
 
@@ -26,7 +25,7 @@ class OfflineTestScreen extends HookConsumerWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
+
             // Database Status
             Card(
               child: Padding(
@@ -34,7 +33,8 @@ class OfflineTestScreen extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Database Status', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Database Status',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     FutureBuilder<bool>(
                       future: DatabaseTestHelper.isDatabaseInitialized(),
@@ -43,11 +43,16 @@ class OfflineTestScreen extends HookConsumerWidget {
                           return Row(
                             children: [
                               Icon(
-                                snapshot.data! ? Icons.check_circle : Icons.error,
-                                color: snapshot.data! ? Colors.green : Colors.red,
+                                snapshot.data!
+                                    ? Icons.check_circle
+                                    : Icons.error,
+                                color:
+                                    snapshot.data! ? Colors.green : Colors.red,
                               ),
                               const SizedBox(width: 8),
-                              Text(snapshot.data! ? 'Database initialized' : 'Database not initialized'),
+                              Text(snapshot.data!
+                                  ? 'Database initialized'
+                                  : 'Database not initialized'),
                             ],
                           );
                         }
@@ -58,9 +63,9 @@ class OfflineTestScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Database Stats
             Card(
               child: Padding(
@@ -68,7 +73,8 @@ class OfflineTestScreen extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Database Statistics', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Database Statistics',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     FutureBuilder<Map<String, int>>(
                       future: DatabaseTestHelper.getDatabaseStats(),
@@ -80,7 +86,8 @@ class OfflineTestScreen extends HookConsumerWidget {
                               _StatRow('Packages', stats['packages'] ?? 0),
                               _StatRow('Tickets', stats['tickets'] ?? 0),
                               _StatRow('Sales', stats['sales'] ?? 0),
-                              _StatRow('Outbox Events', stats['outbox_events'] ?? 0),
+                              _StatRow(
+                                  'Outbox Events', stats['outbox_events'] ?? 0),
                             ],
                           );
                         }
@@ -91,9 +98,9 @@ class OfflineTestScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Test Actions
             Card(
               child: Padding(
@@ -101,9 +108,9 @@ class OfflineTestScreen extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Test Actions', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Test Actions',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    
                     Row(
                       children: [
                         Expanded(
@@ -112,7 +119,8 @@ class OfflineTestScreen extends HookConsumerWidget {
                               await DatabaseTestHelper.populateTestData();
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Test data populated')),
+                                  const SnackBar(
+                                      content: Text('Test data populated')),
                                 );
                               }
                             },
@@ -126,7 +134,8 @@ class OfflineTestScreen extends HookConsumerWidget {
                               await DatabaseTestHelper.clearTestData();
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Test data cleared')),
+                                  const SnackBar(
+                                      content: Text('Test data cleared')),
                                 );
                               }
                             },
@@ -135,9 +144,7 @@ class OfflineTestScreen extends HookConsumerWidget {
                         ),
                       ],
                     ),
-                    
                     const SizedBox(height: 8),
-                    
                     ElevatedButton(
                       onPressed: () async {
                         await _testOfflinePackageRepository(context);
@@ -148,9 +155,9 @@ class OfflineTestScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Test Results
             Expanded(
               child: Card(
@@ -159,7 +166,8 @@ class OfflineTestScreen extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Test Results', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('Test Results',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Expanded(
                         child: FutureBuilder<List<Package>>(
@@ -169,32 +177,35 @@ class OfflineTestScreen extends HookConsumerWidget {
                               final packages = snapshot.data!;
                               if (packages.isEmpty) {
                                 return const Center(
-                                  child: Text('No packages found. Try populating test data.'),
+                                  child: Text(
+                                      'No packages found. Try populating test data.'),
                                 );
                               }
-                              
+
                               return ListView.builder(
                                 itemCount: packages.length,
                                 itemBuilder: (context, index) {
                                   final package = packages[index];
                                   return ListTile(
                                     title: Text(package.name),
-                                    subtitle: Text('${package.priceText} • ${package.type}'),
-                                    trailing: package.quotaOrMinutes != null 
+                                    subtitle: Text(
+                                        '${package.priceText} • ${package.type}'),
+                                    trailing: package.quotaOrMinutes != null
                                         ? Text('${package.quotaOrMinutes}')
                                         : null,
                                   );
                                 },
                               );
                             }
-                            
+
                             if (snapshot.hasError) {
                               return Center(
                                 child: Text('Error: ${snapshot.error}'),
                               );
                             }
-                            
-                            return const Center(child: CircularProgressIndicator());
+
+                            return const Center(
+                                child: CircularProgressIndicator());
                           },
                         ),
                       ),
@@ -233,15 +244,15 @@ class _StatRow extends StatelessWidget {
 
 Future<void> _testOfflinePackageRepository(BuildContext context) async {
   final repository = OfflinePackageRepository();
-  
+
   try {
     // Test creating a package
     final testPackage = DatabaseTestHelper.createTestPackage();
     await repository.savePackage(testPackage);
-    
+
     // Test retrieving packages
     final packages = await repository.getAllPackages();
-    
+
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

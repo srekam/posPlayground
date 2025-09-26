@@ -5,11 +5,6 @@ import {
   Typography,
   Grid,
   Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -25,10 +20,15 @@ import {
   DialogActions,
   Card,
   CardContent,
-  IconButton,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Snackbar,
 } from '@mui/material';
 import { Add, Edit, Delete, Devices, Store, Refresh } from '@mui/icons-material';
-import axios from 'axios';
+import apiClient, { API_ENDPOINTS } from '../config/api';
 
 export default function Stores() {
   const [loading, setLoading] = useState(false);
@@ -38,6 +38,15 @@ export default function Stores() {
   const [activeTab, setActiveTab] = useState('stores');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    timezone: 'UTC',
+    currency: 'THB',
+  });
 
   useEffect(() => {
     fetchData();
@@ -46,17 +55,28 @@ export default function Stores() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError('');
       
-      const [storesRes, devicesRes] = await Promise.all([
-        axios.get('/v1/stores'),
-        axios.get('/v1/devices')
-      ]);
-
-      setStores(storesRes.data.data || []);
-      setDevices(devicesRes.data.data || []);
+      // Fetch stores and devices separately to handle errors independently
+      try {
+        const storesRes = await apiClient.get(API_ENDPOINTS.STORES.LIST);
+        setStores(storesRes.data.data || storesRes.data || []);
+      } catch (err) {
+        console.error('Failed to fetch stores:', err);
+        setStores([]);
+      }
+      
+      try {
+        const devicesRes = await apiClient.get(API_ENDPOINTS.DEVICES.LIST);
+        setDevices(devicesRes.data.data || devicesRes.data || []);
+      } catch (err) {
+        console.error('Failed to fetch devices:', err);
+        setDevices([]);
+      }
+      
     } catch (err) {
-      console.error('Failed to fetch store data:', err);
-      setError('Failed to load store data');
+      console.error('Failed to fetch data:', err);
+      setError('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -64,6 +84,12 @@ export default function Stores() {
 
   const handleEdit = (item) => {
     setEditingItem(item);
+    setFormData({
+      name: item.name || '',
+      address: item.address || '',
+      timezone: item.timezone || 'UTC',
+      currency: item.currency || 'THB',
+    });
     setOpenDialog(true);
   };
 
@@ -71,17 +97,57 @@ export default function Stores() {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     
     try {
-      await axios.delete(`/v1/${activeTab}/${id}`);
+      setLoading(true);
+      await apiClient.delete(API_ENDPOINTS.STORES.DELETE(id));
+      setSnackbar({ open: true, message: 'Store deleted successfully', severity: 'success' });
       fetchData();
     } catch (err) {
-      console.error('Failed to delete item:', err);
-      setError('Failed to delete item');
+      console.error('Failed to delete store:', err);
+      setSnackbar({ open: true, message: 'Failed to delete store', severity: 'error' });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      
+      if (editingItem) {
+        // Update existing store
+        await apiClient.put(API_ENDPOINTS.STORES.UPDATE(editingItem.store_id), formData);
+        setSnackbar({ open: true, message: 'Store updated successfully', severity: 'success' });
+      } else {
+        // Create new store
+        await apiClient.post(API_ENDPOINTS.STORES.CREATE, formData);
+        setSnackbar({ open: true, message: 'Store created successfully', severity: 'success' });
+      }
+      
+      setOpenDialog(false);
+      setEditingItem(null);
+      setFormData({ name: '', address: '', timezone: 'UTC', currency: 'THB' });
+      fetchData();
+    } catch (err) {
+      console.error('Failed to save store:', err);
+      setSnackbar({ open: true, message: 'Failed to save store', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditingItem(null);
+    setFormData({ name: '', address: '', timezone: 'UTC', currency: 'THB' });
+  };
+
+  const handleFormChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleDeviceAction = async (deviceId, action) => {
     try {
-      await axios.patch(`/v1/devices/${deviceId}`, { action });
+      await apiClient.patch(API_ENDPOINTS.DEVICES.UPDATE(deviceId), { action });
       fetchData();
     } catch (err) {
       console.error(`Failed to ${action} device:`, err);
@@ -266,7 +332,11 @@ export default function Stores() {
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => setOpenDialog(true)}
+          onClick={() => {
+            setEditingItem(null);
+            setFormData({ name: '', address: '', timezone: 'UTC', currency: 'THB' });
+            setOpenDialog(true);
+          }}
         >
           Add {activeTab.slice(0, -1)}
         </Button>
@@ -387,20 +457,89 @@ export default function Stores() {
       )}
 
       {/* Edit Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingItem ? 'Edit' : 'Add'} {activeTab.slice(0, -1)}
-        </DialogTitle>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingItem ? 'Edit Store' : 'Add Store'}</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="text.secondary">
-            Store/Device management form would be implemented here with proper validation and API integration.
-          </Typography>
+          <Box sx={{ pt: 1 }}>
+            <TextField
+              fullWidth
+              label="Store Name"
+              value={formData.name}
+              onChange={(e) => handleFormChange('name', e.target.value)}
+              margin="normal"
+              required
+              error={!formData.name.trim()}
+              helperText={!formData.name.trim() ? 'Store name is required' : ''}
+            />
+            
+            <TextField
+              fullWidth
+              label="Address"
+              value={formData.address}
+              onChange={(e) => handleFormChange('address', e.target.value)}
+              margin="normal"
+              multiline
+              rows={3}
+            />
+            
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Timezone</InputLabel>
+              <Select
+                value={formData.timezone}
+                onChange={(e) => handleFormChange('timezone', e.target.value)}
+                label="Timezone"
+              >
+                <MenuItem value="UTC">UTC</MenuItem>
+                <MenuItem value="Asia/Bangkok">Asia/Bangkok</MenuItem>
+                <MenuItem value="Asia/Tokyo">Asia/Tokyo</MenuItem>
+                <MenuItem value="America/New_York">America/New_York</MenuItem>
+                <MenuItem value="Europe/London">Europe/London</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Currency</InputLabel>
+              <Select
+                value={formData.currency}
+                onChange={(e) => handleFormChange('currency', e.target.value)}
+                label="Currency"
+              >
+                <MenuItem value="THB">THB (Thai Baht)</MenuItem>
+                <MenuItem value="USD">USD (US Dollar)</MenuItem>
+                <MenuItem value="EUR">EUR (Euro)</MenuItem>
+                <MenuItem value="JPY">JPY (Japanese Yen)</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button variant="contained">Save</Button>
+          <Button onClick={handleCloseDialog} disabled={loading}>
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSubmit}
+            disabled={loading || !formData.name.trim()}
+          >
+            {loading ? <CircularProgress size={20} /> : 'Save'}
+          </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

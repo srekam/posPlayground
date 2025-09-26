@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/tokens.dart';
-import '../../domain/models/redemption.dart';
 import 'providers/ticket_validator.dart';
 
 class GateResultScreen extends StatelessWidget {
@@ -42,7 +41,8 @@ class GateResultScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: (isPass ? Colors.green : Colors.red).withOpacity(0.3),
+                      color:
+                          (isPass ? Colors.green : Colors.red).withOpacity(0.3),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -54,20 +54,20 @@ class GateResultScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              
+
               const SizedBox(height: Spacing.xl),
-              
+
               // Status text
               Text(
                 isPass ? 'PASS' : 'FAIL',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isPass ? Colors.green : Colors.red,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: isPass ? Colors.green : Colors.red,
+                    ),
               ),
-              
+
               const SizedBox(height: Spacing.md),
-              
+
               // Reason or remaining info
               if (isPass) ...[
                 if (validationResult.remainingQuotaOrTime != null) ...[
@@ -77,7 +77,8 @@ class GateResultScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: Spacing.sm),
                   Text(
-                    _getRemainingDescription(validationResult.remainingQuotaOrTime!),
+                    _getRemainingDescription(
+                        validationResult.remainingQuotaOrTime!),
                     style: Theme.of(context).textTheme.bodyLarge,
                     textAlign: TextAlign.center,
                   ),
@@ -86,14 +87,14 @@ class GateResultScreen extends StatelessWidget {
                 Text(
                   validationResult.reason?.reasonDisplayName ?? 'Unknown error',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.red,
-                  ),
+                        color: Colors.red,
+                      ),
                   textAlign: TextAlign.center,
                 ),
               ],
-              
+
               const SizedBox(height: Spacing.xl),
-              
+
               // QR payload info
               Container(
                 padding: const EdgeInsets.all(Spacing.md),
@@ -113,17 +114,17 @@ class GateResultScreen extends StatelessWidget {
                     Text(
                       qrPayload,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                      ),
+                            fontFamily: 'monospace',
+                          ),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: Spacing.xl),
-              
+
               // Action buttons
               Row(
                 children: [

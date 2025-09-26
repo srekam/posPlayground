@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import '../../core/models/server_config.dart';
 import '../../core/services/server_config_service.dart';
-import '../../widgets/settings/settings_section.dart';
-import '../../widgets/settings/settings_tile.dart';
 
 class ServerConfigScreen extends StatefulWidget {
   const ServerConfigScreen({super.key});
@@ -18,13 +15,13 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
   final _hostController = TextEditingController();
   final _portController = TextEditingController();
   final _apiKeyController = TextEditingController();
-  
+
   bool _useHttps = false;
   bool _isLoading = false;
   bool _isTestingConnection = false;
   bool _isGeneratingApiKey = false;
   bool _showApiKey = false;
-  
+
   ServerConfig? _currentConfig;
   ApiKeyInfo? _currentApiKey;
   ServerTestResult? _lastTestResult;
@@ -45,11 +42,11 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
 
   Future<void> _loadCurrentConfig() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final config = await ServerConfigService.getCurrentConfig();
       final apiKey = await ServerConfigService.getCurrentApiKey();
-      
+
       setState(() {
         _currentConfig = config;
         _currentApiKey = apiKey;
@@ -73,11 +70,13 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
       port: int.parse(_portController.text),
       protocol: _useHttps ? 'https' : 'http',
       useHttps: _useHttps,
-      apiKey: _apiKeyController.text.trim().isNotEmpty ? _apiKeyController.text.trim() : null,
+      apiKey: _apiKeyController.text.trim().isNotEmpty
+          ? _apiKeyController.text.trim()
+          : null,
     );
 
     await ServerConfigService.saveConfig(config);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Server configuration saved')),
@@ -90,20 +89,22 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isTestingConnection = true);
-    
+
     try {
       final config = ServerConfig(
         host: _hostController.text.trim(),
         port: int.parse(_portController.text),
         protocol: _useHttps ? 'https' : 'http',
         useHttps: _useHttps,
-        apiKey: _apiKeyController.text.trim().isNotEmpty ? _apiKeyController.text.trim() : null,
+        apiKey: _apiKeyController.text.trim().isNotEmpty
+            ? _apiKeyController.text.trim()
+            : null,
       );
 
       final result = await ServerConfigService.testConnection(config);
-      
+
       setState(() => _lastTestResult = result);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -121,7 +122,7 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isGeneratingApiKey = true);
-    
+
     try {
       final config = ServerConfig(
         host: _hostController.text.trim(),
@@ -131,23 +132,23 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
       );
 
       final deviceId = 'flutter_pos_${DateTime.now().millisecondsSinceEpoch}';
-      final deviceName = 'Flutter POS Device';
-      
+      const deviceName = 'Flutter POS Device';
+
       final result = await ServerConfigService.generateApiKey(
         config: config,
         deviceId: deviceId,
         deviceName: deviceName,
         permissions: ['read', 'write', 'sell', 'redeem'],
       );
-      
+
       if (result.isSuccess && result.apiKey != null) {
         await ServerConfigService.saveApiKey(result.apiKey!);
-        
+
         setState(() {
           _currentApiKey = result.apiKey;
           _apiKeyController.text = result.apiKey!.displayKey;
         });
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('API key generated successfully')),
@@ -177,7 +178,7 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
     }
 
     setState(() => _isTestingConnection = true);
-    
+
     try {
       final config = ServerConfig(
         host: _hostController.text.trim(),
@@ -191,7 +192,7 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
         config: config,
         apiKey: _apiKeyController.text.trim(),
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -236,9 +237,12 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                           children: [
                             Text(
                               'Server Settings',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 16.0),
                             TextFormField(
@@ -255,7 +259,7 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                                 return null;
                               },
                             ),
-                        const SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             TextFormField(
                               controller: _portController,
                               decoration: const InputDecoration(
@@ -264,7 +268,9 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                                 prefixIcon: Icon(Icons.network_check),
                               ),
                               keyboardType: TextInputType.number,
-                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Please enter a port number';
@@ -276,7 +282,7 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                                 return null;
                               },
                             ),
-                        const SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             SwitchListTile(
                               title: const Text('Use HTTPS'),
                               subtitle: const Text('Enable secure connection'),
@@ -285,7 +291,9 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                                 setState(() => _useHttps = value);
                               },
                             ),
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 24),
@@ -299,9 +307,12 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                           children: [
                             Text(
                               'API Key',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 16.0),
                             TextFormField(
@@ -316,15 +327,22 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                                     if (_apiKeyController.text.isNotEmpty)
                                       IconButton(
                                         onPressed: () {
-                                          setState(() => _showApiKey = !_showApiKey);
+                                          setState(
+                                              () => _showApiKey = !_showApiKey);
                                         },
-                                        icon: Icon(_showApiKey ? Icons.visibility_off : Icons.visibility),
+                                        icon: Icon(_showApiKey
+                                            ? Icons.visibility_off
+                                            : Icons.visibility),
                                       ),
                                     IconButton(
                                       onPressed: () {
-                                        Clipboard.setData(ClipboardData(text: _apiKeyController.text));
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('API key copied to clipboard')),
+                                        Clipboard.setData(ClipboardData(
+                                            text: _apiKeyController.text));
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  'API key copied to clipboard')),
                                         );
                                       },
                                       icon: const Icon(Icons.copy),
@@ -332,41 +350,54 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                                   ],
                                 ),
                               ),
-                              obscureText: !_showApiKey && _apiKeyController.text.length > 8,
+                              obscureText: !_showApiKey &&
+                                  _apiKeyController.text.length > 8,
                             ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _isGeneratingApiKey ? null : _generateApiKey,
-                                icon: _isGeneratingApiKey 
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : const Icon(Icons.add),
-                                label: Text(_isGeneratingApiKey ? 'Generating...' : 'Generate'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: _isTestingConnection ? null : _validateApiKey,
-                                icon: _isTestingConnection 
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : const Icon(Icons.check_circle),
-                                label: Text(_isTestingConnection ? 'Validating...' : 'Validate'),
-                              ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _isGeneratingApiKey
+                                        ? null
+                                        : _generateApiKey,
+                                    icon: _isGeneratingApiKey
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          )
+                                        : const Icon(Icons.add),
+                                    label: Text(_isGeneratingApiKey
+                                        ? 'Generating...'
+                                        : 'Generate'),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _isTestingConnection
+                                        ? null
+                                        : _validateApiKey,
+                                    icon: _isTestingConnection
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          )
+                                        : const Icon(Icons.check_circle),
+                                    label: Text(_isTestingConnection
+                                        ? 'Validating...'
+                                        : 'Validate'),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
 
                     const SizedBox(height: 24),
@@ -380,67 +411,77 @@ class _ServerConfigScreenState extends State<ServerConfigScreen> {
                           children: [
                             Text(
                               'Connection Test',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 16.0),
-                        if (_lastTestResult != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: _lastTestResult!.isSuccess 
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.red.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: _lastTestResult!.isSuccess 
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _lastTestResult!.isSuccess 
-                                      ? Icons.check_circle
-                                      : Icons.error,
-                                  color: _lastTestResult!.isSuccess 
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _lastTestResult!.message,
-                                    style: TextStyle(
-                                      color: _lastTestResult!.isSuccess 
-                                          ? Colors.green[800]
-                                          : Colors.red[800],
-                                    ),
+                            if (_lastTestResult != null) ...[
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: _lastTestResult!.isSuccess
+                                      ? Colors.green.withValues(alpha: 0.1)
+                                      : Colors.red.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: _lastTestResult!.isSuccess
+                                        ? Colors.green
+                                        : Colors.red,
                                   ),
                                 ),
-                              ],
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      _lastTestResult!.isSuccess
+                                          ? Icons.check_circle
+                                          : Icons.error,
+                                      color: _lastTestResult!.isSuccess
+                                          ? Colors.green
+                                          : Colors.red,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _lastTestResult!.message,
+                                        style: TextStyle(
+                                          color: _lastTestResult!.isSuccess
+                                              ? Colors.green[800]
+                                              : Colors.red[800],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _isTestingConnection
+                                    ? null
+                                    : _testConnection,
+                                icon: _isTestingConnection
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.wifi_find),
+                                label: Text(_isTestingConnection
+                                    ? 'Testing...'
+                                    : 'Test Connection'),
+                                style: ElevatedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _isTestingConnection ? null : _testConnection,
-                            icon: _isTestingConnection 
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.wifi_find),
-                            label: Text(_isTestingConnection ? 'Testing...' : 'Test Connection'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
                           ],
                         ),
                       ),

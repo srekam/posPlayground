@@ -17,10 +17,10 @@ from app.models.sales import (
 from app.deps import (
     CurrentUser,
     CurrentDevice,
-    
     Idempotency,
     RequireCashier,
-    RequireSalesScope
+    RequireSalesScope,
+    get_sales_service
 )
 from app.services.sales import SalesService
 from app.utils.errors import PlayParkException
@@ -32,11 +32,10 @@ security = HTTPBearer(auto_error=False)
 @router.post("/", response_model=SaleResponse)
 async def create_sale(
     request: SaleCreateRequest,
-    current_user = Depends(CurrentUser),
-    current_device = Depends(CurrentDevice),
-    idempotency_key: Optional[str] = Depends(Idempotency),
-    sales_service: SalesService = Depends(),
-    _: None = Depends(RateLimit)
+    current_user,
+    current_device = CurrentDevice,
+    idempotency_key: Optional[str] = Idempotency,
+    sales_service: SalesService = Depends(get_sales_service)
 ) -> SaleResponse:
     """Create a new sale"""
     
@@ -69,9 +68,8 @@ async def create_sale(
 @router.get("/{sale_id}", response_model=SaleResponse)
 async def get_sale(
     sale_id: str,
-    current_user = Depends(CurrentUser),
-    sales_service: SalesService = Depends(),
-    _: None = Depends(RateLimit)
+    current_user,
+    sales_service: SalesService = Depends(get_sales_service)
 ) -> SaleResponse:
     """Get sale by ID"""
     
@@ -104,14 +102,13 @@ async def get_sale(
 
 @router.get("/", response_model=Dict[str, Any])
 async def get_sales(
+    current_user,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     from_date: Optional[datetime] = Query(default=None),
     to_date: Optional[datetime] = Query(default=None),
     status: Optional[str] = Query(default=None),
-    current_user = Depends(CurrentUser),
-    sales_service: SalesService = Depends(),
-    _: None = Depends(RateLimit)
+    sales_service: SalesService = Depends(get_sales_service)
 ) -> Dict[str, Any]:
     """Get sales list"""
     
@@ -142,9 +139,8 @@ async def get_sales(
 @router.post("/refunds", response_model=RefundResponse)
 async def request_refund(
     request: RefundRequest,
-    current_user = Depends(CurrentUser),
-    sales_service: SalesService = Depends(),
-    _: None = Depends(RateLimit)
+    current_user,
+    sales_service: SalesService = Depends(get_sales_service)
 ) -> RefundResponse:
     """Request a refund"""
     
@@ -167,9 +163,8 @@ async def request_refund(
 @router.post("/reprints", response_model=ReprintResponse)
 async def request_reprint(
     request: ReprintRequest,
-    current_user = Depends(CurrentUser),
-    sales_service: SalesService = Depends(),
-    _: None = Depends(RateLimit)
+    current_user,
+    sales_service: SalesService = Depends(get_sales_service)
 ) -> ReprintResponse:
     """Request a reprint"""
     

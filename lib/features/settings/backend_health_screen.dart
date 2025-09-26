@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core/services/connectivity_service.dart';
-import '../../core/services/device_auth_service.dart';
 import '../../core/providers/adaptive_provider.dart';
 import '../../core/config/app_config.dart';
 
@@ -59,10 +57,14 @@ class BackendHealthScreen extends HookConsumerWidget {
                               ),
                               Text(
                                 adaptiveState.mode.message,
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: _getStatusColor(adaptiveState.mode.type),
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      color: _getStatusColor(
+                                          adaptiveState.mode.type),
+                                      fontWeight: FontWeight.w500,
+                                    ),
                               ),
                             ],
                           ),
@@ -89,15 +91,19 @@ class BackendHealthScreen extends HookConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     connectionStatus.when(
-                      data: (status) => _buildStatusRow('Network', status.name, _getConnectionColor(status)),
+                      data: (status) => _buildStatusRow(
+                          'Network', status.name, _getConnectionColor(status)),
                       loading: () => const _LoadingRow('Network'),
-                      error: (error, _) => _buildStatusRow('Network', 'Error: $error', Colors.red),
+                      error: (error, _) => _buildStatusRow(
+                          'Network', 'Error: $error', Colors.red),
                     ),
                     const SizedBox(height: 8),
                     backendStatus.when(
-                      data: (status) => _buildStatusRow('Backend', status.name, _getBackendColor(status)),
+                      data: (status) => _buildStatusRow(
+                          'Backend', status.name, _getBackendColor(status)),
                       loading: () => const _LoadingRow('Backend'),
-                      error: (error, _) => _buildStatusRow('Backend', 'Error: $error', Colors.red),
+                      error: (error, _) => _buildStatusRow(
+                          'Backend', 'Error: $error', Colors.red),
                     ),
                   ],
                 ),
@@ -122,8 +128,13 @@ class BackendHealthScreen extends HookConsumerWidget {
                     _buildConfigRow('Device ID', AppConfig.defaultDeviceId),
                     _buildConfigRow('Store ID', AppConfig.defaultStoreId),
                     _buildConfigRow('Tenant ID', AppConfig.defaultTenantId),
-                    _buildConfigRow('Offline Mode', AppConfig.enableOfflineMode ? 'Enabled' : 'Disabled'),
-                    _buildConfigRow('Health Check', AppConfig.enableBackendHealthCheck ? 'Enabled' : 'Disabled'),
+                    _buildConfigRow('Offline Mode',
+                        AppConfig.enableOfflineMode ? 'Enabled' : 'Disabled'),
+                    _buildConfigRow(
+                        'Health Check',
+                        AppConfig.enableBackendHealthCheck
+                            ? 'Enabled'
+                            : 'Disabled'),
                   ],
                 ),
               ),
@@ -188,7 +199,8 @@ class BackendHealthScreen extends HookConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: () => _showDetailedInfo(context, connectionSummary),
+                        onPressed: () =>
+                            _showDetailedInfo(context, connectionSummary),
                         icon: const Icon(Icons.info_outline),
                         label: const Text('Detailed Info'),
                       ),
@@ -348,7 +360,7 @@ class BackendHealthScreen extends HookConsumerWidget {
   void _refreshHealth(BuildContext context, WidgetRef ref) {
     final connectivityService = ref.read(connectivityServiceProvider);
     connectivityService.forceBackendHealthCheck();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Refreshing health status...'),
@@ -360,7 +372,7 @@ class BackendHealthScreen extends HookConsumerWidget {
   void _testConnection(BuildContext context, WidgetRef ref) async {
     final connectivityService = ref.read(connectivityServiceProvider);
     await connectivityService.forceBackendHealthCheck();
-    
+
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -390,29 +402,31 @@ class BackendHealthScreen extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: summary.entries.map(
-              (entry) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      child: Text(
-                        '${entry.key}:',
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
+            children: summary.entries
+                .map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 120,
+                          child: Text(
+                            '${entry.key}:',
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            entry.value.toString(),
+                            style: const TextStyle(fontFamily: 'monospace'),
+                          ),
+                        ),
+                      ],
                     ),
-                    Expanded(
-                      child: Text(
-                        entry.value.toString(),
-                        style: const TextStyle(fontFamily: 'monospace'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ).toList(),
+                  ),
+                )
+                .toList(),
           ),
         ),
         actions: [

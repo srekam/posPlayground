@@ -10,7 +10,7 @@ class TicketValidator {
       // Parse QR payload
       final ticketData = _parseQrPayload(qrPayload);
       final ticketId = ticketData['tid'] as String?;
-      
+
       if (ticketId == null) {
         return ValidationResult.fail(RedemptionReason.invalidSignature);
       }
@@ -26,7 +26,7 @@ class TicketValidator {
       if (now.isBefore(ticket.validFrom)) {
         return ValidationResult.fail(RedemptionReason.notStarted);
       }
-      
+
       if (now.isAfter(ticket.validTo)) {
         return ValidationResult.fail(RedemptionReason.expired);
       }
@@ -34,7 +34,7 @@ class TicketValidator {
       // Check quota usage
       final currentUsage = _quotaUsage[ticketId] ?? 0;
       final maxQuota = ticket.quotaOrMinutes;
-      
+
       if (ticket.type == TicketType.single || ticket.type == TicketType.multi) {
         // For single/multi tickets, check usage count
         if (currentUsage >= maxQuota) {
@@ -43,7 +43,8 @@ class TicketValidator {
       }
 
       // Check for duplicate use in recent history (within 5 minutes)
-      final recentRedemptions = _getRecentRedemptions(ticketId, Duration(minutes: 5));
+      final recentRedemptions =
+          _getRecentRedemptions(ticketId, const Duration(minutes: 5));
       if (recentRedemptions.any((r) => r.status == RedemptionStatus.pass)) {
         return ValidationResult.fail(RedemptionReason.duplicateUse);
       }
@@ -62,7 +63,6 @@ class TicketValidator {
       _incrementUsage(ticketId);
 
       return ValidationResult.pass(redemption.remainingQuotaOrTime);
-      
     } catch (e) {
       return ValidationResult.fail(RedemptionReason.invalidSignature);
     }
@@ -72,13 +72,13 @@ class TicketValidator {
     // Parse the compact format: "v:1|tid:TKT-123|t:token|s:sig|lf:lot|tp:type|valid_from:123|valid_to:456|quota_or_minutes:5"
     final parts = payload.split('|');
     final result = <String, dynamic>{};
-    
+
     for (final part in parts) {
       final keyValue = part.split(':');
       if (keyValue.length == 2) {
         final key = keyValue[0];
         final value = keyValue[1];
-        
+
         // Parse numeric values
         if (key == 'v' || key == 'quota_or_minutes') {
           result[key] = int.tryParse(value);
@@ -89,7 +89,7 @@ class TicketValidator {
         }
       }
     }
-    
+
     return result;
   }
 
@@ -115,11 +115,16 @@ class TicketValidator {
 
   List<Redemption> _getRecentRedemptions(String ticketId, Duration window) {
     final cutoff = DateTime.now().subtract(window);
-    return _redemptionHistory[ticketId]?.where((r) => r.timestamp.isAfter(cutoff)).toList() ?? [];
+    return _redemptionHistory[ticketId]
+            ?.where((r) => r.timestamp.isAfter(cutoff))
+            .toList() ??
+        [];
   }
 
   void _recordRedemption(Redemption redemption) {
-    _redemptionHistory.putIfAbsent(redemption.ticketId, () => []).add(redemption);
+    _redemptionHistory
+        .putIfAbsent(redemption.ticketId, () => [])
+        .add(redemption);
   }
 
   void _incrementUsage(String ticketId) {
@@ -131,11 +136,13 @@ class TicketValidator {
       case TicketType.single:
         return 0; // Single use tickets have no remaining
       case TicketType.multi:
-        return (ticket.quotaOrMinutes - currentUsage - 1).clamp(0, ticket.quotaOrMinutes);
+        return (ticket.quotaOrMinutes - currentUsage - 1)
+            .clamp(0, ticket.quotaOrMinutes);
       case TicketType.timepass:
         // For timepass, return remaining minutes (simplified calculation)
         final elapsed = DateTime.now().difference(ticket.issuedAt).inMinutes;
-        return (ticket.quotaOrMinutes - elapsed).clamp(0, ticket.quotaOrMinutes);
+        return (ticket.quotaOrMinutes - elapsed)
+            .clamp(0, ticket.quotaOrMinutes);
       case TicketType.credit:
         return ticket.quotaOrMinutes; // Credits don't decrease on redemption
     }

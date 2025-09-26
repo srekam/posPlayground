@@ -51,11 +51,11 @@ RUN mkdir -p /app/logs && chown -R appuser:appuser /app/logs
 USER appuser
 
 # Expose port
-EXPOSE 48080
+EXPOSE 50080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:48080/healthz || exit 1
+    CMD curl -f http://localhost:50080/healthz || exit 1
 
 # Default command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "48080"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "50080"]

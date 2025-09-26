@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Items from './pages/Items';
 import Employees from './pages/Employees';
+import DevicePairing from './pages/DevicePairing';
 import Integrations from './pages/Integrations';
 import Settings from './pages/Settings';
 import Stores from './pages/Stores';
@@ -42,6 +43,7 @@ function App() {
                 <Route path="reports" element={<Reports />} />
                 <Route path="items" element={<Items />} />
                 <Route path="employees" element={<Employees />} />
+                <Route path="device-pairing" element={<DevicePairing />} />
                 <Route path="integrations" element={<Integrations />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="stores" element={<Stores />} />

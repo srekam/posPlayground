@@ -1,5 +1,4 @@
 import 'dart:convert';
-import '../../domain/models/ticket.dart';
 
 class DatabaseSale {
   final String id;
@@ -34,14 +33,14 @@ class DatabaseSale {
       totalAmount: (map['total_amount'] ?? 0).toDouble(),
       paymentMethod: map['payment_method'] ?? 'cash',
       paymentReference: map['payment_reference'],
-      items: map['items'] != null 
+      items: map['items'] != null
           ? (jsonDecode(map['items']) as List)
               .map((item) => SaleItem.fromJson(item))
               .toList()
           : [],
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] ?? 0),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] ?? 0),
-      syncedAt: map['synced_at'] != null 
+      syncedAt: map['synced_at'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['synced_at'])
           : null,
     );

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     API_VERSION: str = "v1"
     ENVIRONMENT: str = Field(default="development", description="Environment: development, staging, production")
     DEBUG: bool = Field(default=False, description="Enable debug mode")
-    PORT: int = Field(default=48080, description="Server port")
+    PORT: int = Field(default=50080, description="Server port")
     HOST: str = Field(default="0.0.0.0", description="Server host")
     
     # Security
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     
     # CORS
     CORS_ORIGINS: str = Field(
-        default="http://localhost:3000,http://localhost:8080",
+        default="http://localhost:3000,http://localhost:8080,http://localhost:3001,http://localhost:3002",
         description="Allowed CORS origins (comma-separated)"
     )
     ALLOWED_HOSTS: Optional[List[str]] = Field(default=None, description="Allowed hosts for TrustedHostMiddleware")

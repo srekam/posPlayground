@@ -3,6 +3,7 @@ Error Handling Utilities
 """
 from typing import Optional, Dict, Any
 from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 
@@ -34,6 +35,21 @@ class ErrorCode:
     DEVICE_SUSPENDED = "E_DEVICE_SUSPENDED"
     DEVICE_ALREADY_REGISTERED = "E_DEVICE_ALREADY_REGISTERED"
     INVALID_DEVICE_TOKEN = "E_INVALID_DEVICE_TOKEN"
+    
+    # Enrollment errors
+    E_EXPIRED = "E_EXPIRED"
+    E_USED = "E_USED"
+    E_REVOKED = "E_REVOKED"
+    E_SCOPE_MISMATCH = "E_SCOPE_MISMATCH"
+    E_MIN_VERSION = "E_MIN_VERSION"
+    E_RATE_LIMIT = "E_RATE_LIMIT"
+    ENROLL_TOKEN_NOT_FOUND = "E_ENROLL_TOKEN_NOT_FOUND"
+    ENROLL_TOKEN_EXPIRED = "E_ENROLL_TOKEN_EXPIRED"
+    ENROLL_TOKEN_USED = "E_ENROLL_TOKEN_USED"
+    ENROLL_TOKEN_REVOKED = "E_ENROLL_TOKEN_REVOKED"
+    INVALID_ENROLL_TOKEN = "E_INVALID_ENROLL_TOKEN"
+    DEVICE_TYPE_MISMATCH = "E_DEVICE_TYPE_MISMATCH"
+    STORE_MISMATCH = "E_STORE_MISMATCH"
     
     # Sale errors
     SALE_NOT_FOUND = "E_SALE_NOT_FOUND"
@@ -112,7 +128,7 @@ def create_error_response(
     status_code: int = status.HTTP_400_BAD_REQUEST,
     details: Optional[Dict[str, Any]] = None,
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create standardized error response"""
     
     error_data = {
@@ -126,9 +142,9 @@ def create_error_response(
     if request_id:
         error_data["request_id"] = request_id
     
-    return HTTPException(
-        status_code=status_code,
-        detail=error_data
+    return JSONResponse(
+        content=error_data,
+        status_code=status_code
     )
 
 
@@ -151,7 +167,7 @@ class ValidationErrorResponse(BaseModel):
 def create_validation_error_response(
     validation_errors: list[ValidationErrorDetail],
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create validation error response"""
     
     error_data = {
@@ -174,7 +190,7 @@ def not_found_error(
     resource: str,
     identifier: str,
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create not found error response"""
     return create_error_response(
         error_code=ErrorCode.NOT_FOUND,
@@ -187,7 +203,7 @@ def not_found_error(
 def unauthorized_error(
     message: str = "Authentication required",
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create unauthorized error response"""
     return create_error_response(
         error_code=ErrorCode.MISSING_TOKEN,
@@ -200,7 +216,7 @@ def unauthorized_error(
 def forbidden_error(
     message: str = "Access denied",
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create forbidden error response"""
     return create_error_response(
         error_code=ErrorCode.ACCESS_DENIED,
@@ -213,7 +229,7 @@ def forbidden_error(
 def conflict_error(
     message: str = "Resource conflict",
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create conflict error response"""
     return create_error_response(
         error_code=ErrorCode.USER_ALREADY_EXISTS,
@@ -226,7 +242,7 @@ def conflict_error(
 def rate_limit_error(
     retry_after: int = 60,
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create rate limit error response"""
     return create_error_response(
         error_code=ErrorCode.RATE_LIMIT,
@@ -240,7 +256,7 @@ def rate_limit_error(
 def internal_error(
     message: str = "Internal server error",
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create internal error response"""
     return create_error_response(
         error_code=ErrorCode.INTERNAL_ERROR,
@@ -253,7 +269,7 @@ def internal_error(
 def service_unavailable_error(
     message: str = "Service temporarily unavailable",
     request_id: Optional[str] = None
-) -> HTTPException:
+) -> JSONResponse:
     """Create service unavailable error response"""
     return create_error_response(
         error_code=ErrorCode.SERVICE_UNAVAILABLE,

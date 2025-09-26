@@ -17,7 +17,7 @@ class CheckoutScreen extends HookConsumerWidget {
     final cart = ref.watch(cartProvider);
     final paymentState = ref.watch(paymentProvider);
     final paymentNotifier = ref.read(paymentProvider.notifier);
-    
+
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
       body: SingleChildScrollView(
@@ -32,17 +32,21 @@ class CheckoutScreen extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Order Summary', style: Theme.of(context).textTheme.titleLarge),
+                    Text('Order Summary',
+                        style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: Spacing.sm),
                     ...cart.lines.map((line) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: Spacing.xs),
-                      child: Row(
-                        children: [
-                          Expanded(child: Text('${line.package.name} x${line.qty}')),
-                          Text(line.lineTotalText),
-                        ],
-                      ),
-                    )),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: Spacing.xs),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: Text(
+                                      '${line.package.name} x${line.qty}')),
+                              Text(line.lineTotalText),
+                            ],
+                          ),
+                        )),
                     const Divider(),
                     Row(
                       children: [
@@ -63,11 +67,14 @@ class CheckoutScreen extends HookConsumerWidget {
                     Row(
                       children: [
                         const Expanded(
-                          child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                          child: Text('Total',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18)),
                         ),
                         Text(
                           cart.grandTotalText,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18),
                         ),
                       ],
                     ),
@@ -75,9 +82,9 @@ class CheckoutScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: Spacing.md),
-            
+
             // Payment Method Selection
             Card(
               child: Padding(
@@ -85,7 +92,8 @@ class CheckoutScreen extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Payment Method', style: Theme.of(context).textTheme.titleLarge),
+                    Text('Payment Method',
+                        style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: Spacing.sm),
                     _PaymentMethodSelector(
                       selectedMethod: paymentState.selectedMethod,
@@ -95,9 +103,9 @@ class CheckoutScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: Spacing.md),
-            
+
             // Cash Payment Fields (if cash selected)
             if (paymentState.selectedMethod == PaymentMethod.cash)
               Card(
@@ -106,7 +114,8 @@ class CheckoutScreen extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Cash Payment', style: Theme.of(context).textTheme.titleLarge),
+                      Text('Cash Payment',
+                          style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: Spacing.sm),
                       _CashPaymentFields(
                         grandTotal: cart.grandTotal,
@@ -117,9 +126,9 @@ class CheckoutScreen extends HookConsumerWidget {
                   ),
                 ),
               ),
-            
+
             const SizedBox(height: Spacing.lg),
-            
+
             // Complete Payment Button - Fixed at bottom
             Container(
               padding: const EdgeInsets.only(bottom: Spacing.md),
@@ -150,7 +159,7 @@ class CheckoutScreen extends HookConsumerWidget {
     final paymentNotifier = ref.read(paymentProvider.notifier);
     final cartNotifier = ref.read(cartProvider.notifier);
     final ticketGenerator = ref.read(ticketGeneratorProvider);
-    
+
     try {
       // Show loading
       showDialog(
@@ -158,26 +167,26 @@ class CheckoutScreen extends HookConsumerWidget {
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
-      
+
       // Simulate payment processing
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Process payment
       final payment = await paymentNotifier.processPayment(cart);
-      
+
       // Generate tickets
       final tickets = ticketGenerator.generateTicketsFromCart(cart);
-      
+
       // Save sale to sale list
       final salesNotifier = ref.read(salesProvider.notifier);
       salesNotifier.addSale(payment, tickets);
-      
+
       // Clear cart
       cartNotifier.clearCart();
-      
+
       // Close loading dialog
       Navigator.of(context).pop();
-      
+
       // Navigate to receipt
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -187,7 +196,7 @@ class CheckoutScreen extends HookConsumerWidget {
     } catch (e) {
       // Close loading dialog
       Navigator.of(context).pop();
-      
+
       // Show error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Payment failed: $e')),
@@ -257,14 +266,14 @@ class _CashPaymentFields extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final change = tenderedAmount - grandTotal;
-    
+
     return Column(
       children: [
         TextField(
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Amount Tendered',
             prefixText: '฿',
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(),
           ),
           keyboardType: TextInputType.number,
           onChanged: (value) {
@@ -291,7 +300,8 @@ class _CashPaymentFields extends StatelessWidget {
           Row(
             children: [
               const Expanded(
-                child: Text('Change:', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text('Change:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               Text(
                 '฿${change.toStringAsFixed(0)}',

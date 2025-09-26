@@ -6,19 +6,20 @@ import 'hybrid_package_repository.dart';
 class PackageRepository {
   final HybridPackageRepository _hybridRepo = HybridPackageRepository();
 
-  Future<List<Package>> getAllPackages({String? storeId, bool forceRefresh = false}) async {
+  Future<List<Package>> getAllPackages(
+      {String? storeId, bool forceRefresh = false}) async {
     // On web, always use mock data to avoid SQLite issues
     if (kIsWeb) {
       return _getMockPackages();
     }
-    
+
     // Try to get from hybrid repository (offline-first with sync)
     final packages = await _hybridRepo.getPackages(forceRefresh: forceRefresh);
-    
+
     if (packages.isNotEmpty) {
       return packages;
     }
-    
+
     // Fallback to mock data if no data available
     return _getMockPackages();
   }
@@ -33,13 +34,13 @@ class PackageRepository {
         return null;
       }
     }
-    
+
     final package = await _hybridRepo.getPackageById(id);
-    
+
     if (package != null) {
       return package;
     }
-    
+
     // Fallback to mock data
     final mockPackages = _getMockPackages();
     try {
@@ -54,7 +55,7 @@ class PackageRepository {
     if (kIsWeb) {
       return _getMockPackages().where((p) => p.type == type).toList();
     }
-    
+
     return await _hybridRepo.getPackagesByType(type);
   }
 
@@ -76,12 +77,42 @@ class PackageRepository {
   // Fallback mock data
   List<Package> _getMockPackages() {
     return [
-      Package(id: '1', name: 'Day Pass', price: 350, type: 'timepass', quotaOrMinutes: 480),
-      Package(id: '2', name: 'Multi 5', price: 1200, type: 'multi', quotaOrMinutes: 5),
-      Package(id: '3', name: 'Single', price: 250, type: 'single', quotaOrMinutes: 1),
-      Package(id: '4', name: 'Adult + Kid', price: 500, type: 'bundle', quotaOrMinutes: 2),
-      Package(id: '5', name: 'Credit 1000', price: 1000, type: 'credit', quotaOrMinutes: 1000),
-      Package(id: '6', name: 'Evening', price: 180, type: 'timepass', quotaOrMinutes: 240),
+      const Package(
+          id: '1',
+          name: 'Day Pass',
+          price: 350,
+          type: 'timepass',
+          quotaOrMinutes: 480),
+      const Package(
+          id: '2',
+          name: 'Multi 5',
+          price: 1200,
+          type: 'multi',
+          quotaOrMinutes: 5),
+      const Package(
+          id: '3',
+          name: 'Single',
+          price: 250,
+          type: 'single',
+          quotaOrMinutes: 1),
+      const Package(
+          id: '4',
+          name: 'Adult + Kid',
+          price: 500,
+          type: 'bundle',
+          quotaOrMinutes: 2),
+      const Package(
+          id: '5',
+          name: 'Credit 1000',
+          price: 1000,
+          type: 'credit',
+          quotaOrMinutes: 1000),
+      const Package(
+          id: '6',
+          name: 'Evening',
+          price: 180,
+          type: 'timepass',
+          quotaOrMinutes: 240),
     ];
   }
 }

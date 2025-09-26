@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/models/server_config.dart';
 import '../../core/services/server_config_service.dart';
 
 class OnlineDevicesScreen extends ConsumerStatefulWidget {
   const OnlineDevicesScreen({super.key});
 
   @override
-  ConsumerState<OnlineDevicesScreen> createState() => _OnlineDevicesScreenState();
+  ConsumerState<OnlineDevicesScreen> createState() =>
+      _OnlineDevicesScreenState();
 }
 
 class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
@@ -29,8 +29,9 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
 
     try {
       final config = await ServerConfigService.getCurrentConfig();
-      final devices = await ServerConfigService.getOnlineDevices(config: config);
-      
+      final devices =
+          await ServerConfigService.getOnlineDevices(config: config);
+
       setState(() {
         _devices = devices;
         _isLoading = false;
@@ -94,8 +95,8 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
               _error!,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.red,
-              ),
+                    color: Colors.red,
+                  ),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -154,7 +155,7 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
   Widget _buildDeviceCard(OnlineDevice device) {
     final timeSinceLastSeen = device.timeSinceLastSeen;
     String lastSeenText;
-    
+
     if (timeSinceLastSeen.inMinutes < 1) {
       lastSeenText = 'Just now';
     } else if (timeSinceLastSeen.inMinutes < 60) {
@@ -175,9 +176,7 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: device.isOnline 
-                      ? Colors.green 
-                      : Colors.red,
+                  backgroundColor: device.isOnline ? Colors.green : Colors.red,
                   radius: 8,
                 ),
                 const SizedBox(width: 12),
@@ -187,15 +186,16 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
                     children: [
                       Text(
                         device.deviceName,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       Text(
                         device.deviceId,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey,
-                        ),
+                              color: Colors.grey,
+                            ),
                       ),
                     ],
                   ),
@@ -208,15 +208,13 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  backgroundColor: device.isOnline 
+                  backgroundColor: device.isOnline
                       ? Colors.green.withOpacity(0.2)
                       : Colors.red.withOpacity(0.2),
                 ),
               ],
             ),
-            
             const SizedBox(height: 12),
-            
             Row(
               children: [
                 Icon(
@@ -228,8 +226,8 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
                 Text(
                   'Type: ${device.deviceType}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
                 const Spacer(),
                 Icon(
@@ -241,12 +239,11 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
                 Text(
                   'Last seen: $lastSeenText',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
               ],
             ),
-            
             if (device.ipAddress != null) ...[
               const SizedBox(height: 8),
               Row(
@@ -260,13 +257,12 @@ class _OnlineDevicesScreenState extends ConsumerState<OnlineDevicesScreen> {
                   Text(
                     'IP: ${device.ipAddress}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                          color: Colors.grey[600],
+                        ),
                   ),
                 ],
               ),
             ],
-            
             if (device.permissions.isNotEmpty) ...[
               const SizedBox(height: 12),
               Wrap(

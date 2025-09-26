@@ -7,7 +7,8 @@ class UserManagementScreen extends ConsumerStatefulWidget {
   const UserManagementScreen({super.key});
 
   @override
-  ConsumerState<UserManagementScreen> createState() => _UserManagementScreenState();
+  ConsumerState<UserManagementScreen> createState() =>
+      _UserManagementScreenState();
 }
 
 class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
@@ -32,10 +33,11 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
     try {
       final config = await ServerConfigService.getCurrentConfig();
       final apiKey = await ServerConfigService.getCurrentApiKey();
-      
+
       if (apiKey == null) {
         setState(() {
-          _error = 'No API key configured. Please configure server settings first.';
+          _error =
+              'No API key configured. Please configure server settings first.';
           _isLoading = false;
         });
         return;
@@ -114,17 +116,23 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
 
   List<RoleInfo> _getMockRoles() {
     return [
-      RoleInfo(
+      const RoleInfo(
         id: '1',
         name: 'owner',
         displayName: 'Owner',
         description: 'Full system access and control',
-        permissions: ['admin', 'can_manage_users', 'can_sell', 'can_redeem', 'can_access_reports'],
+        permissions: [
+          'admin',
+          'can_manage_users',
+          'can_sell',
+          'can_redeem',
+          'can_access_reports'
+        ],
         level: 10,
         color: '#d32f2f',
         isSystemRole: true,
       ),
-      RoleInfo(
+      const RoleInfo(
         id: '2',
         name: 'manager',
         displayName: 'Manager',
@@ -134,7 +142,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
         color: '#1976d2',
         isSystemRole: true,
       ),
-      RoleInfo(
+      const RoleInfo(
         id: '3',
         name: 'cashier',
         displayName: 'Cashier',
@@ -144,7 +152,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
         color: '#388e3c',
         isSystemRole: true,
       ),
-      RoleInfo(
+      const RoleInfo(
         id: '4',
         name: 'gate_operator',
         displayName: 'Gate Operator',
@@ -213,8 +221,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
               _error!,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.red,
-              ),
+                    color: Colors.red,
+                  ),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -238,8 +246,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
               Text(
                 'Roles & Permissions',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -256,7 +264,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
             ],
           ),
         ),
-        
+
         // Users List
         Expanded(
           child: ListView.builder(
@@ -277,7 +285,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
       width: 200,
       margin: const EdgeInsets.only(right: 12),
       child: Card(
-        color: Color(int.parse(role.color.replaceFirst('#', '0xFF'))).withOpacity(0.1),
+        color: Color(int.parse(role.color.replaceFirst('#', '0xFF')))
+            .withOpacity(0.1),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -287,7 +296,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                 children: [
                   Icon(
                     _getRoleIcon(role.name),
-                    color: Color(int.parse(role.color.replaceFirst('#', '0xFF'))),
+                    color:
+                        Color(int.parse(role.color.replaceFirst('#', '0xFF'))),
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -296,7 +306,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                       role.displayName,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color(int.parse(role.color.replaceFirst('#', '0xFF'))),
+                        color: Color(
+                            int.parse(role.color.replaceFirst('#', '0xFF'))),
                       ),
                     ),
                   ),
@@ -304,7 +315,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                     Icon(
                       Icons.security,
                       size: 16,
-                      color: Color(int.parse(role.color.replaceFirst('#', '0xFF'))),
+                      color: Color(
+                          int.parse(role.color.replaceFirst('#', '0xFF'))),
                     ),
                 ],
               ),
@@ -325,7 +337,9 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                       permission,
                       style: const TextStyle(fontSize: 10),
                     ),
-                    backgroundColor: Color(int.parse(role.color.replaceFirst('#', '0xFF'))).withOpacity(0.2),
+                    backgroundColor:
+                        Color(int.parse(role.color.replaceFirst('#', '0xFF')))
+                            .withOpacity(0.2),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   );
                 }).toList(),
@@ -367,24 +381,28 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                         children: [
                           Text(
                             user.name,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           const SizedBox(width: 8),
                           if (user.isOwner)
                             Chip(
                               label: const Text('OWNER'),
                               backgroundColor: Colors.red.withOpacity(0.2),
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
                             ),
                         ],
                       ),
                       Text(
                         user.email,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                              color: Colors.grey[600],
+                            ),
                       ),
                     ],
                   ),
@@ -416,7 +434,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                       value: user.isActive ? 'deactivate' : 'activate',
                       child: Row(
                         children: [
-                          Icon(user.isActive ? Icons.block : Icons.check_circle),
+                          Icon(
+                              user.isActive ? Icons.block : Icons.check_circle),
                           const SizedBox(width: 8),
                           Text(user.isActive ? 'Deactivate' : 'Activate'),
                         ],
@@ -437,9 +456,9 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Roles
             Wrap(
               spacing: 4,
@@ -458,17 +477,19 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                     isSystemRole: false,
                   ),
                 );
-                
+
                 return Chip(
                   label: Text(role),
-                  backgroundColor: Color(int.parse(roleInfo.color.replaceFirst('#', '0xFF'))).withOpacity(0.2),
+                  backgroundColor:
+                      Color(int.parse(roleInfo.color.replaceFirst('#', '0xFF')))
+                          .withOpacity(0.2),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 );
               }).toList(),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             // Status and last login
             Row(
               children: [
@@ -495,8 +516,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                 Text(
                   'Last login: ${_formatLastLogin(user.lastLogin)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
               ],
             ),
@@ -559,7 +580,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add New User'),
-        content: const Text('User creation functionality will be implemented with full backend integration.'),
+        content: const Text(
+            'User creation functionality will be implemented with full backend integration.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -575,7 +597,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit User'),
-        content: Text('Edit functionality for ${user.name} will be implemented with full backend integration.'),
+        content: Text(
+            'Edit functionality for ${user.name} will be implemented with full backend integration.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -595,18 +618,20 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Current Permissions:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Current Permissions:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             ...user.permissions.map((permission) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.green, size: 16),
-                  const SizedBox(width: 8),
-                  Text(permission),
-                ],
-              ),
-            )),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle,
+                          color: Colors.green, size: 16),
+                      const SizedBox(width: 8),
+                      Text(permission),
+                    ],
+                  ),
+                )),
           ],
         ),
         actions: [
@@ -623,7 +648,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
     // TODO: Implement actual API call
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${user.isActive ? 'Deactivating' : 'Activating'} ${user.name}...'),
+        content: Text(
+            '${user.isActive ? 'Deactivating' : 'Activating'} ${user.name}...'),
       ),
     );
   }
@@ -633,7 +659,8 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete User'),
-        content: Text('Are you sure you want to delete ${user.name}? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete ${user.name}? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

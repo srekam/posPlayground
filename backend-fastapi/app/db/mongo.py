@@ -74,7 +74,7 @@ async def close_database() -> None:
 
 async def ensure_indexes() -> None:
     """Ensure database indexes are created"""
-    if not _database:
+    if _database is None:
         return
     
     logger.info("Ensuring database indexes")
@@ -136,7 +136,7 @@ async def ensure_indexes() -> None:
 
 def get_collection(collection_name: str):
     """Get a specific collection from the database"""
-    if not _database:
+    if _database is None:
         raise RuntimeError("Database not initialized. Call get_database() first.")
     
     return _database[collection_name]

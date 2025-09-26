@@ -13,7 +13,7 @@ class SaleListScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final salesAsync = ref.watch(salesProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sale List'),
@@ -46,8 +46,8 @@ class SaleListScreen extends HookConsumerWidget {
                 Text(
                   'Shift Performance',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: Spacing.md),
                 Row(
@@ -65,7 +65,8 @@ class SaleListScreen extends HookConsumerWidget {
                     Expanded(
                       child: _PerformanceCard(
                         title: 'Revenue',
-                        value: '฿${_calculateTotalRevenue(salesAsync).toStringAsFixed(0)}',
+                        value:
+                            '฿${_calculateTotalRevenue(salesAsync).toStringAsFixed(0)}',
                         subtitle: 'This Shift',
                         icon: Icons.attach_money,
                         color: Colors.green,
@@ -89,7 +90,8 @@ class SaleListScreen extends HookConsumerWidget {
                     Expanded(
                       child: _PerformanceCard(
                         title: 'Avg Sale',
-                        value: '฿${_calculateAverageSale(salesAsync).toStringAsFixed(0)}',
+                        value:
+                            '฿${_calculateAverageSale(salesAsync).toStringAsFixed(0)}',
                         subtitle: 'Per Transaction',
                         icon: Icons.trending_up,
                         color: Colors.purple,
@@ -100,7 +102,7 @@ class SaleListScreen extends HookConsumerWidget {
               ],
             ),
           ),
-          
+
           // Sale List
           Expanded(
             child: salesAsync.isEmpty
@@ -149,7 +151,7 @@ class SaleListScreen extends HookConsumerWidget {
 
 class _SaleCard extends StatelessWidget {
   final SaleRecord sale;
-  
+
   const _SaleCard({required this.sale});
 
   @override
@@ -182,9 +184,9 @@ class _SaleCard extends StatelessWidget {
                 Text(
                   sale.payment.amountText,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                 ),
               ],
             ),
@@ -245,7 +247,8 @@ class _SaleCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Refund Receipt #${sale.payment.reference ?? sale.payment.id}'),
+            Text(
+                'Refund Receipt #${sale.payment.reference ?? sale.payment.id}'),
             const SizedBox(height: Spacing.xs),
             Text('Amount: ${sale.payment.amountText}'),
             const SizedBox(height: Spacing.xs),
@@ -253,8 +256,8 @@ class _SaleCard extends StatelessWidget {
             const SizedBox(height: Spacing.md),
             const Text('Manager approval required:'),
             const SizedBox(height: Spacing.sm),
-            TextField(
-              decoration: const InputDecoration(
+            const TextField(
+              decoration: InputDecoration(
                 labelText: 'Manager PIN',
                 hintText: 'Enter 4-digit PIN',
                 border: OutlineInputBorder(),
@@ -305,16 +308,17 @@ class _SaleCard extends StatelessWidget {
     // Simulate refund processing
     Future.delayed(const Duration(seconds: 2), () {
       Navigator.of(context).pop(); // Close loading dialog
-      
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Refund processed for Receipt #${sale.payment.reference ?? sale.payment.id}'),
+          content: Text(
+              'Refund processed for Receipt #${sale.payment.reference ?? sale.payment.id}'),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 3),
         ),
       );
-      
+
       // Refresh the sale list
       // Note: In a real app, you'd invalidate the provider here
     });
@@ -366,15 +370,15 @@ class _PerformanceCard extends StatelessWidget {
             Text(
               value,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
             ),
             Text(
               subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ],
         ),

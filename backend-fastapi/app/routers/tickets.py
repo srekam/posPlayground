@@ -24,9 +24,8 @@ router = APIRouter()
 @router.post("/redeem", response_model=TicketRedeemResponse)
 async def redeem_ticket(
     request: TicketRedeemRequest,
-    current_device = Depends(CurrentDevice),
-    ticket_service: TicketService = Depends(),
-    _: None = Depends(RateLimit)
+    current_device = CurrentDevice,
+    ticket_service: TicketService = Depends()
 ) -> TicketRedeemResponse:
     """Redeem a ticket"""
     
@@ -49,9 +48,8 @@ async def redeem_ticket(
 @router.get("/{ticket_id}", response_model=TicketResponse)
 async def get_ticket(
     ticket_id: str,
-    current_user = Depends(CurrentUser),
-    ticket_service: TicketService = Depends(),
-    _: None = Depends(RateLimit)
+    current_user,
+    ticket_service: TicketService = Depends()
 ) -> TicketResponse:
     """Get ticket by ID"""
     

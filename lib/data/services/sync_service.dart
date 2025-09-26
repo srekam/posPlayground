@@ -16,8 +16,8 @@ import '../../domain/models/outbox_event.dart';
 import 'api_service.dart';
 
 class SyncService {
-  static final _uuid = const Uuid();
-  
+  static const _uuid = Uuid();
+
   final OfflinePackageRepository _packageRepo = OfflinePackageRepository();
   final OfflineTicketRepository _ticketRepo = OfflineTicketRepository();
   final OfflineSaleRepository _saleRepo = OfflineSaleRepository();
@@ -29,23 +29,22 @@ class SyncService {
     if (kIsWeb) {
       return SyncResult.success('Web mode: Using mock data');
     }
-    
+
     try {
       final response = await ApiService.getPackages();
-      
+
       if (response.isSuccess) {
         final packagesData = response.data as List;
-        final packages = packagesData
-            .map((data) => Package.fromJson(data))
-            .toList();
-        
+        final packages =
+            packagesData.map((data) => Package.fromJson(data)).toList();
+
         await _packageRepo.savePackages(packages);
-        
+
         // Mark all packages as synced
         for (final package in packages) {
           await _packageRepo.markPackageAsSynced(package.id);
         }
-        
+
         return SyncResult.success('Synced ${packages.length} packages');
       } else {
         return SyncResult.error('Failed to fetch packages: ${response.error}');
@@ -59,11 +58,11 @@ class SyncService {
   Future<SyncResult> syncLocalDataToServer() async {
     try {
       final results = <String>[];
-      
+
       // Process outbox events
       final outboxResult = await _processOutboxEvents();
       results.addAll(outboxResult);
-      
+
       return SyncResult.success('Sync completed: ${results.join(', ')}');
     } catch (e) {
       return SyncResult.error('Error syncing to server: $e');
@@ -73,15 +72,16 @@ class SyncService {
   Future<List<String>> _processOutboxEvents() async {
     final results = <String>[];
     final queuedEvents = await _outboxRepo.getQueuedEvents();
-    
+
     for (final event in queuedEvents) {
       try {
         // Mark as sending
-        await _outboxRepo.updateEventStatus(event.id, OutboxEventStatus.sending);
-        
+        await _outboxRepo.updateEventStatus(
+            event.id, OutboxEventStatus.sending);
+
         bool success = false;
         String? errorMessage;
-        
+
         switch (event.type) {
           case OutboxEventType.sale:
             success = await _processSaleEvent(event);
@@ -96,13 +96,13 @@ class SyncService {
             success = await _processRefundEvent(event);
             break;
         }
-        
+
         if (success) {
           await _outboxRepo.updateEventStatus(event.id, OutboxEventStatus.sent);
           results.add('${event.type.name}: Success');
         } else {
           await _outboxRepo.updateEventStatus(
-            event.id, 
+            event.id,
             OutboxEventStatus.failed,
             error: errorMessage ?? 'Unknown error',
           );
@@ -110,14 +110,14 @@ class SyncService {
         }
       } catch (e) {
         await _outboxRepo.updateEventStatus(
-          event.id, 
+          event.id,
           OutboxEventStatus.failed,
           error: e.toString(),
         );
         results.add('${event.type.name}: Error - $e');
       }
     }
-    
+
     return results;
   }
 
@@ -127,11 +127,14 @@ class SyncService {
       final saleRequest = SaleRequest(
         deviceId: saleData['device_id'] ?? '',
         cashierId: saleData['cashier_id'] ?? '',
-        items: (saleData['items'] as List<dynamic>?)?.map((item) => SaleItem(
-          packageId: item['package_id'] ?? '',
-          quantity: (item['quantity'] ?? 1).toInt(),
-          price: (item['unit_price'] ?? 0.0).toDouble(),
-        )).toList() ?? [],
+        items: (saleData['items'] as List<dynamic>?)
+                ?.map((item) => SaleItem(
+                      packageId: item['package_id'] ?? '',
+                      quantity: (item['quantity'] ?? 1).toInt(),
+                      price: (item['unit_price'] ?? 0.0).toDouble(),
+                    ))
+                .toList() ??
+            [],
         subtotal: (saleData['subtotal'] ?? 0.0).toDouble(),
         discountTotal: (saleData['discount_total'] ?? 0.0).toDouble(),
         taxTotal: (saleData['tax_total'] ?? 0.0).toDouble(),
@@ -142,7 +145,7 @@ class SyncService {
         idempotencyKey: saleData['idempotency_key'],
       );
       final response = await ApiService.createSale(saleRequest);
-      
+
       if (response.isSuccess) {
         // Mark sale as synced
         final saleId = saleData['id'] as String?;
@@ -189,7 +192,7 @@ class SyncService {
       payload: sale.toMap(),
       timestamp: DateTime.now(),
     );
-    
+
     await _outboxRepo.saveEvent(event);
   }
 
@@ -201,7 +204,7 @@ class SyncService {
       payload: redemptionData,
       timestamp: DateTime.now(),
     );
-    
+
     await _outboxRepo.saveEvent(event);
   }
 
@@ -213,7 +216,7 @@ class SyncService {
       payload: reprintData,
       timestamp: DateTime.now(),
     );
-    
+
     await _outboxRepo.saveEvent(event);
   }
 
@@ -225,7 +228,7 @@ class SyncService {
       payload: refundData,
       timestamp: DateTime.now(),
     );
-    
+
     await _outboxRepo.saveEvent(event);
   }
 
@@ -233,7 +236,7 @@ class SyncService {
   Future<SyncStatus> getSyncStatus() async {
     // On web, return empty sync status to avoid database errors
     if (kIsWeb) {
-      return SyncStatus(
+      return const SyncStatus(
         queuedEvents: 0,
         failedEvents: 0,
         unsyncedPackages: 0,
@@ -241,13 +244,13 @@ class SyncService {
         unsyncedSales: 0,
       );
     }
-    
+
     final queuedCount = await _outboxRepo.getQueuedEventsCount();
     final failedCount = await _outboxRepo.getFailedEventsCount();
     final unsyncedPackages = await _packageRepo.getUnsyncedPackages();
     final unsyncedTickets = await _ticketRepo.getUnsyncedTickets();
     final unsyncedSales = await _saleRepo.getUnsyncedSales();
-    
+
     return SyncStatus(
       queuedEvents: queuedCount,
       failedEvents: failedCount,
@@ -262,17 +265,17 @@ class SyncService {
     try {
       final failedEvents = await _outboxRepo.getFailedEvents();
       final results = <String>[];
-      
+
       for (final event in failedEvents) {
         // Reset status to queued for retry
         await _outboxRepo.updateEventStatus(event.id, OutboxEventStatus.queued);
         results.add('Retrying ${event.type.name}');
       }
-      
+
       // Process the retried events
       final retryResults = await _processOutboxEvents();
       results.addAll(retryResults);
-      
+
       return SyncResult.success('Retry completed: ${results.join(', ')}');
     } catch (e) {
       return SyncResult.error('Error retrying failed events: $e');
@@ -283,7 +286,7 @@ class SyncService {
   Future<void> cleanupOldData() async {
     // Delete sent outbox events older than 7 days
     await _outboxRepo.deleteSentEvents();
-    
+
     // You can add more cleanup logic here
   }
 }
@@ -313,17 +316,17 @@ class SyncStatus {
     required this.unsyncedSales,
   });
 
-  bool get hasUnsyncedData => 
-      queuedEvents > 0 || 
-      failedEvents > 0 || 
-      unsyncedPackages > 0 || 
-      unsyncedTickets > 0 || 
+  bool get hasUnsyncedData =>
+      queuedEvents > 0 ||
+      failedEvents > 0 ||
+      unsyncedPackages > 0 ||
+      unsyncedTickets > 0 ||
       unsyncedSales > 0;
 
-  int get totalUnsynced => 
-      queuedEvents + 
-      failedEvents + 
-      unsyncedPackages + 
-      unsyncedTickets + 
+  int get totalUnsynced =>
+      queuedEvents +
+      failedEvents +
+      unsyncedPackages +
+      unsyncedTickets +
       unsyncedSales;
 }

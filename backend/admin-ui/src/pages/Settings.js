@@ -19,7 +19,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Save } from '@mui/icons-material';
-import axios from 'axios';
+import apiClient, { API_ENDPOINTS } from '../config/api';
 
 export default function Settings() {
   const [loading, setLoading] = useState(false);
@@ -63,7 +63,7 @@ export default function Settings() {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/v1/settings');
+      const response = await apiClient.get(API_ENDPOINTS.SETTINGS.GET);
       setSettings(response.data.data);
     } catch (err) {
       console.error('Failed to fetch settings:', err);
@@ -79,7 +79,7 @@ export default function Settings() {
       setError('');
       setSuccess('');
       
-      await axios.put('/v1/settings', settings);
+      await apiClient.put(API_ENDPOINTS.SETTINGS.UPDATE, settings);
       setSuccess('Settings saved successfully');
     } catch (err) {
       console.error('Failed to save settings:', err);

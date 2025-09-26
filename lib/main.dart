@@ -8,17 +8,15 @@ import 'features/gate/gate_scan_screen.dart';
 import 'features/checkout/checkout_screen.dart';
 import 'features/reports/shift_screen.dart';
 import 'features/settings/settings_screen.dart';
+import 'features/enrollment/device_enrollment_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'features/settings/providers/settings_provider.dart';
 import 'data/database/database_helper.dart';
-import 'features/core/providers/sync_provider.dart';
-import 'widgets/sync_status_widget.dart';
-import 'core/providers/adaptive_provider.dart';
 import 'widgets/adaptive_ui/adaptive_mode_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize database only on non-web platforms
   if (!kIsWeb) {
     try {
@@ -27,7 +25,7 @@ void main() async {
       print('Database initialization failed: $e');
     }
   }
-  
+
   runApp(const ProviderScope(child: App()));
 }
 
@@ -37,14 +35,18 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
-    
+
     final router = GoRouter(
-      initialLocation: '/pos',
+      initialLocation: '/enrollment',
       routes: [
+        GoRoute(
+            path: '/enrollment',
+            builder: (_, __) => const DeviceEnrollmentScreen()),
         GoRoute(path: '/pos', builder: (_, __) => const PosCatalogScreen()),
         GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
         GoRoute(path: '/gate/scan', builder: (_, __) => const GateScanScreen()),
-        GoRoute(path: '/reports/shifts', builder: (_, __) => const ShiftScreen()),
+        GoRoute(
+            path: '/reports/shifts', builder: (_, __) => const ShiftScreen()),
         GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
       ],
     );
@@ -64,5 +66,3 @@ class App extends ConsumerWidget {
     );
   }
 }
-
-

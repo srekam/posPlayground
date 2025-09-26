@@ -29,6 +29,9 @@ from app.routers import (
     webhooks,
     sync,
     provider,
+    enrollment,
+    deep_link,
+    stores,
 )
 from app.utils.errors import PlayParkException, create_error_response
 from app.utils.logging import setup_logging
@@ -77,9 +80,10 @@ if settings.ALLOWED_HOSTS:
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_origins=["*"],
+    allow_origin_regex=None,
+    allow_credentials=False,
+    allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Request-ID", "X-RateLimit-Limit", "X-RateLimit-Remaining"],
 )
@@ -171,8 +175,11 @@ async def readiness_check():
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(enrollment.router, tags=["Enrollment"])
+app.include_router(deep_link.router, tags=["Deep Links"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(roles.router, prefix="/api/v1/roles", tags=["Roles"])
+app.include_router(stores.router, prefix="/api/v1", tags=["Stores"])
 app.include_router(catalog.router, prefix="/api/v1/catalog", tags=["Catalog"])
 app.include_router(sales.router, prefix="/api/v1/sales", tags=["Sales"])
 app.include_router(tickets.router, prefix="/api/v1/tickets", tags=["Tickets"])

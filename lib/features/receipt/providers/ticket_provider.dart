@@ -1,7 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../domain/models/ticket.dart';
 import '../../../domain/models/cart.dart';
-import '../../../domain/models/cart_line.dart';
 import '../../../domain/models/package.dart';
 
 final issuedTicketsProvider = FutureProvider<List<Ticket>>((ref) async {
@@ -63,12 +62,12 @@ class TicketGenerator {
     final shortCode = _generateShortCode();
     final token = _generateToken();
     final signature = _generateSignature(id, token); // Mock signature
-    
+
     // Calculate validity based on package type
     final (validFrom, validTo) = _calculateValidity(package.type, issuedAt);
-    
+
     final ticketType = _mapPackageTypeToTicketType(package.type);
-    
+
     final qrPayload = _generateQrPayload({
       'v': 1,
       'tid': id,
@@ -106,11 +105,11 @@ class TicketGenerator {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing chars
     final random = DateTime.now().millisecondsSinceEpoch;
     final code = <String>[];
-    
+
     for (int i = 0; i < 6; i++) {
       code.add(chars[(random + i) % chars.length]);
     }
-    
+
     return '${code.take(3).join()}-${code.skip(3).take(3).join()}';
   }
 
@@ -131,7 +130,8 @@ class TicketGenerator {
     return 'SHIFT-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
   }
 
-  (DateTime, DateTime) _calculateValidity(String packageType, DateTime issuedAt) {
+  (DateTime, DateTime) _calculateValidity(
+      String packageType, DateTime issuedAt) {
     switch (packageType) {
       case 'single':
         return (issuedAt, issuedAt.add(const Duration(days: 1)));
@@ -163,8 +163,6 @@ class TicketGenerator {
 
   String _generateQrPayload(Map<String, dynamic> data) {
     // Convert to compact JSON-like string
-    return data.entries
-        .map((e) => '${e.key}:${e.value}')
-        .join('|');
+    return data.entries.map((e) => '${e.key}:${e.value}').join('|');
   }
 }

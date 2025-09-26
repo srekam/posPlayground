@@ -4,7 +4,7 @@ import 'tokens.dart';
 class AppTheme {
   static ThemeData dark({String colorScheme = 'default'}) {
     ColorScheme colorSchemeData;
-    
+
     switch (colorScheme) {
       case 'lollipop':
         colorSchemeData = const ColorScheme.dark(
@@ -12,13 +12,11 @@ class AppTheme {
           secondary: Color(0xFF9C27B0),
           tertiary: Color(0xFF00BCD4),
           surface: Color(0xFF1A1A1A),
-          background: Color(0xFF121212),
           error: Color(0xFFF44336),
           onPrimary: Colors.white,
           onSecondary: Colors.white,
           onTertiary: Colors.white,
           onSurface: Colors.white,
-          onBackground: Colors.white,
           onError: Colors.white,
         );
         break;
@@ -28,13 +26,11 @@ class AppTheme {
           secondary: Colors.grey,
           tertiary: Colors.white70,
           surface: Color(0xFF1A1A1A),
-          background: Color(0xFF000000),
           error: Color(0xFF666666),
           onPrimary: Colors.black,
           onSecondary: Colors.black,
           onTertiary: Colors.black,
           onSurface: Colors.white,
-          onBackground: Colors.white,
           onError: Colors.white,
         );
         break;
@@ -44,13 +40,13 @@ class AppTheme {
           brightness: Brightness.dark,
         );
     }
-    
+
     final base = ThemeData(
       colorScheme: colorSchemeData,
       useMaterial3: true,
       brightness: Brightness.dark,
     );
-    
+
     return base.copyWith(
       scaffoldBackgroundColor: colorSchemeData.surface,
       textTheme: base.textTheme.apply(
@@ -63,7 +59,7 @@ class AppTheme {
 
   static ThemeData light({String colorScheme = 'default'}) {
     ColorScheme colorSchemeData;
-    
+
     switch (colorScheme) {
       case 'lollipop':
         colorSchemeData = const ColorScheme.light(
@@ -71,13 +67,11 @@ class AppTheme {
           secondary: Color(0xFF9C27B0),
           tertiary: Color(0xFF00BCD4),
           surface: Color(0xFFFFFBFE),
-          background: Color(0xFFFFFBFE),
           error: Color(0xFFF44336),
           onPrimary: Colors.white,
           onSecondary: Colors.white,
           onTertiary: Colors.white,
           onSurface: Colors.black,
-          onBackground: Colors.black,
           onError: Colors.white,
         );
         break;
@@ -87,13 +81,11 @@ class AppTheme {
           secondary: Colors.grey,
           tertiary: Colors.black87,
           surface: Color(0xFFFFFFFF),
-          background: Color(0xFFFFFFFF),
           error: Color(0xFF666666),
           onPrimary: Colors.white,
           onSecondary: Colors.white,
           onTertiary: Colors.white,
           onSurface: Colors.black,
-          onBackground: Colors.black,
           onError: Colors.white,
         );
         break;
@@ -103,13 +95,13 @@ class AppTheme {
           brightness: Brightness.light,
         );
     }
-    
+
     final base = ThemeData(
       colorScheme: colorSchemeData,
       useMaterial3: true,
       brightness: Brightness.light,
     );
-    
+
     return base.copyWith(
       scaffoldBackgroundColor: colorSchemeData.surface,
       textTheme: base.textTheme.apply(
@@ -120,5 +112,3 @@ class AppTheme {
     );
   }
 }
-
-

@@ -24,7 +24,7 @@ class PosCatalogScreen extends HookConsumerWidget {
     final packagesAsync = ref.watch(packagesProvider);
     final cart = ref.watch(cartProvider);
     final settings = ref.watch(settingsProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('POS • Catalog'),
@@ -77,7 +77,7 @@ class PosCatalogScreen extends HookConsumerWidget {
                 opacity: const AlwaysStoppedAnimation(0.1),
               ),
             ),
-          
+
           // Sync Progress Overlay
           const Positioned(
             top: 0,
@@ -85,7 +85,7 @@ class PosCatalogScreen extends HookConsumerWidget {
             right: 0,
             child: SyncProgressWidget(),
           ),
-          
+
           // Main Content
           packagesAsync.when(
             data: (packages) => LayoutBuilder(
@@ -145,10 +145,10 @@ class PosCatalogScreen extends HookConsumerWidget {
           if (constraints.maxWidth >= 900) {
             return const SizedBox.shrink(); // Hide on wide screens
           }
-          
+
           return AdaptiveFloatingActionButton(
             requiredCapability: 'can_sell',
-            onPressed: cart.isNotEmpty 
+            onPressed: cart.isNotEmpty
                 ? () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                     )
@@ -181,7 +181,7 @@ class _PackageCard extends HookConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final cartNotifier = ref.read(cartProvider.notifier);
     final cart = ref.watch(cartProvider);
-    
+
     final existingLine = cartNotifier.getLineByPackageId(package.id);
     final qty = existingLine?.qty ?? 0;
 
@@ -197,13 +197,14 @@ class _PackageCard extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: Spacing.xs, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.xs, vertical: 2),
                     decoration: BoxDecoration(
                       color: cs.secondaryContainer,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      package.type, 
+                      package.type,
                       style: TextStyle(
                         color: cs.onSecondaryContainer,
                         fontSize: 12,
@@ -215,9 +216,11 @@ class _PackageCard extends HookConsumerWidget {
                 const SizedBox(width: Spacing.xs),
                 if (qty > 0) ...[
                   IconButton(
-                    onPressed: () => cartNotifier.updateLineQty(package.id, qty - 1),
+                    onPressed: () =>
+                        cartNotifier.updateLineQty(package.id, qty - 1),
                     icon: const Icon(Icons.remove_circle_outline, size: 20),
-                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                    constraints:
+                        const BoxConstraints(minWidth: 28, minHeight: 28),
                     padding: EdgeInsets.zero,
                   ),
                   Text('$qty', style: const TextStyle(fontSize: 14)),
@@ -225,24 +228,25 @@ class _PackageCard extends HookConsumerWidget {
                 IconButton(
                   onPressed: () => cartNotifier.addPackage(package),
                   icon: const Icon(Icons.add_circle_outline, size: 20),
-                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  constraints:
+                      const BoxConstraints(minWidth: 28, minHeight: 28),
                   padding: EdgeInsets.zero,
                 ),
               ],
             ),
             const SizedBox(height: Spacing.xs),
             Text(
-              package.name, 
+              package.name,
               style: Theme.of(context).textTheme.titleSmall,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 2),
             Text(
-              package.priceText, 
+              package.priceText,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -260,7 +264,7 @@ class _CartPanel extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartNotifier = ref.read(cartProvider.notifier);
-    
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.all(Spacing.md),
@@ -302,12 +306,14 @@ class _CartPanel extends HookConsumerWidget {
                           children: [
                             Expanded(child: Text(line.package.name)),
                             IconButton(
-                              onPressed: () => cartNotifier.updateLineQty(line.package.id, line.qty - 1),
+                              onPressed: () => cartNotifier.updateLineQty(
+                                  line.package.id, line.qty - 1),
                               icon: const Icon(Icons.remove_circle_outline),
                             ),
                             Text('${line.qty}'),
                             IconButton(
-                              onPressed: () => cartNotifier.updateLineQty(line.package.id, line.qty + 1),
+                              onPressed: () => cartNotifier.updateLineQty(
+                                  line.package.id, line.qty + 1),
                               icon: const Icon(Icons.add_circle_outline),
                             ),
                             const SizedBox(width: Spacing.xs),
@@ -319,26 +325,29 @@ class _CartPanel extends HookConsumerWidget {
             ),
             if (cart.isNotEmpty) ...[
               const SizedBox(height: Spacing.sm),
-              
+
               // Discount Controls
               Card(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 child: Padding(
                   padding: const EdgeInsets.all(Spacing.sm),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Discounts', style: Theme.of(context).textTheme.titleSmall),
+                      Text('Discounts',
+                          style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: Spacing.xs),
                       Row(
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
-                              onPressed: () => _showDiscountDialog(context, ref),
+                              onPressed: () =>
+                                  _showDiscountDialog(context, ref),
                               icon: const Icon(Icons.percent, size: 16),
                               label: const Text('Apply %'),
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: Spacing.xs),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: Spacing.xs),
                               ),
                             ),
                           ),
@@ -349,7 +358,8 @@ class _CartPanel extends HookConsumerWidget {
                               icon: const Icon(Icons.local_offer, size: 16),
                               label: const Text('Coupon'),
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: Spacing.xs),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: Spacing.xs),
                               ),
                             ),
                           ),
@@ -363,9 +373,11 @@ class _CartPanel extends HookConsumerWidget {
                             Text('-${cart.cartLevelDiscountText}'),
                             const SizedBox(width: Spacing.xs),
                             IconButton(
-                              onPressed: () => cartNotifier.applyCartLevelDiscount(),
+                              onPressed: () =>
+                                  cartNotifier.applyCartLevelDiscount(),
                               icon: const Icon(Icons.close, size: 16),
-                              constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                              constraints: const BoxConstraints(
+                                  minWidth: 24, minHeight: 24),
                             ),
                           ],
                         ),
@@ -374,7 +386,7 @@ class _CartPanel extends HookConsumerWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: Spacing.sm),
               Row(
                 children: [
@@ -394,8 +406,11 @@ class _CartPanel extends HookConsumerWidget {
               const SizedBox(height: Spacing.xs),
               Row(
                 children: [
-                  const Expanded(child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
-                  Text(cart.grandTotalText, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const Expanded(
+                      child: Text('Total',
+                          style: TextStyle(fontWeight: FontWeight.bold))),
+                  Text(cart.grandTotalText,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: Spacing.md),
@@ -422,7 +437,7 @@ class _CartPanel extends HookConsumerWidget {
   void _showDiscountDialog(BuildContext context, WidgetRef ref) {
     final cartNotifier = ref.read(cartProvider.notifier);
     final cart = ref.read(cartProvider);
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -480,7 +495,7 @@ class _CartPanel extends HookConsumerWidget {
   void _showCouponDialog(BuildContext context, WidgetRef ref) {
     final cartNotifier = ref.read(cartProvider.notifier);
     final cart = ref.read(cartProvider);
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -529,6 +544,3 @@ class _CartPanel extends HookConsumerWidget {
     );
   }
 }
-
-
-

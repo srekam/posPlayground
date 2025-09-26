@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/tokens.dart';
 import 'providers/settings_provider.dart';
 import 'offline_test_screen.dart';
-import 'package:flutter/services.dart';
 
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
@@ -12,7 +10,7 @@ class SettingsScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -36,31 +34,41 @@ class SettingsScreen extends HookConsumerWidget {
                 title: 'Dark',
                 subtitle: 'Dark theme',
                 isSelected: settings.themeMode == ThemeMode.dark,
-                onTap: () => ref.read(settingsProvider.notifier).setThemeMode(ThemeMode.dark),
+                onTap: () => ref
+                    .read(settingsProvider.notifier)
+                    .setThemeMode(ThemeMode.dark),
               ),
               _ThemeOption(
                 title: 'Light',
                 subtitle: 'Light theme',
                 isSelected: settings.themeMode == ThemeMode.light,
-                onTap: () => ref.read(settingsProvider.notifier).setThemeMode(ThemeMode.light),
+                onTap: () => ref
+                    .read(settingsProvider.notifier)
+                    .setThemeMode(ThemeMode.light),
               ),
               _ThemeOption(
                 title: 'Lollipop',
                 subtitle: 'Colorful theme',
-                isSelected: settings.themeMode == ThemeMode.system && settings.colorScheme == 'lollipop',
-                onTap: () => ref.read(settingsProvider.notifier).setColorScheme('lollipop'),
+                isSelected: settings.themeMode == ThemeMode.system &&
+                    settings.colorScheme == 'lollipop',
+                onTap: () => ref
+                    .read(settingsProvider.notifier)
+                    .setColorScheme('lollipop'),
               ),
               _ThemeOption(
                 title: 'Monochrome',
                 subtitle: 'Black & white theme',
-                isSelected: settings.themeMode == ThemeMode.system && settings.colorScheme == 'monochrome',
-                onTap: () => ref.read(settingsProvider.notifier).setColorScheme('monochrome'),
+                isSelected: settings.themeMode == ThemeMode.system &&
+                    settings.colorScheme == 'monochrome',
+                onTap: () => ref
+                    .read(settingsProvider.notifier)
+                    .setColorScheme('monochrome'),
               ),
             ],
           ),
-          
+
           const SizedBox(height: Spacing.lg),
-          
+
           // Language Section
           _SettingsSection(
             title: 'Language',
@@ -70,19 +78,21 @@ class SettingsScreen extends HookConsumerWidget {
                 title: 'English',
                 subtitle: 'English',
                 isSelected: settings.language == 'en',
-                onTap: () => ref.read(settingsProvider.notifier).setLanguage('en'),
+                onTap: () =>
+                    ref.read(settingsProvider.notifier).setLanguage('en'),
               ),
               _LanguageOption(
                 title: 'ไทย',
                 subtitle: 'Thai',
                 isSelected: settings.language == 'th',
-                onTap: () => ref.read(settingsProvider.notifier).setLanguage('th'),
+                onTap: () =>
+                    ref.read(settingsProvider.notifier).setLanguage('th'),
               ),
             ],
           ),
-          
+
           const SizedBox(height: Spacing.lg),
-          
+
           // Background Section
           _SettingsSection(
             title: 'Background',
@@ -92,12 +102,14 @@ class SettingsScreen extends HookConsumerWidget {
                 title: const Text('Background Image'),
                 subtitle: const Text('Show playground background'),
                 value: settings.showBackgroundImage,
-                onChanged: (value) => ref.read(settingsProvider.notifier).setShowBackgroundImage(value),
+                onChanged: (value) => ref
+                    .read(settingsProvider.notifier)
+                    .setShowBackgroundImage(value),
                 secondary: const Icon(Icons.image),
               ),
             ],
           ),
-          
+
           const SizedBox(height: Spacing.lg),
 
           // Client Features Section
@@ -121,9 +133,9 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: Spacing.lg),
-          
+
           // Reset Section
           _SettingsSection(
             title: 'Reset',
@@ -147,7 +159,8 @@ class SettingsScreen extends HookConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Reset Settings'),
-        content: const Text('Are you sure you want to reset all settings to default values?'),
+        content: const Text(
+            'Are you sure you want to reset all settings to default values?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -177,7 +190,8 @@ class SettingsScreen extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('PlayPark POS Client', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('PlayPark POS Client',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
             Text('Version: 1.0.0'),
             Text('Platform: Web'),
@@ -227,8 +241,8 @@ class _SettingsSection extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
@@ -259,7 +273,8 @@ class _ThemeOption extends StatelessWidget {
     return ListTile(
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
+      trailing:
+          isSelected ? const Icon(Icons.check, color: Colors.green) : null,
       onTap: onTap,
     );
   }
@@ -283,7 +298,8 @@ class _LanguageOption extends StatelessWidget {
     return ListTile(
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
+      trailing:
+          isSelected ? const Icon(Icons.check, color: Colors.green) : null,
       onTap: onTap,
     );
   }

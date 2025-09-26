@@ -41,7 +41,7 @@ class ServerConfig {
     try {
       // Validate host format
       if (host.isEmpty) return false;
-      
+
       // Check if it's a valid IP or hostname
       if (RegExp(r'^(\d{1,3}\.){3}\d{1,3}$').hasMatch(host)) {
         // Valid IP address
@@ -52,7 +52,7 @@ class ServerConfig {
       } else if (host == 'localhost' || host == '127.0.0.1') {
         return true;
       }
-      
+
       return false;
     } catch (e) {
       return false;
@@ -174,8 +174,10 @@ class ApiKeyInfo {
     return ApiKeyInfo(
       key: json['key'] ?? '',
       encodedKey: json['encodedKey'] ?? '',
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      expiresAt: json['expiresAt'] != null ? DateTime.parse(json['expiresAt']) : null,
+      createdAt:
+          DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      expiresAt:
+          json['expiresAt'] != null ? DateTime.parse(json['expiresAt']) : null,
       permissions: List<String>.from(json['permissions'] ?? []),
       deviceId: json['deviceId'] ?? '',
       name: json['name'] ?? '',
@@ -190,7 +192,7 @@ class ApiKeyInfo {
     try {
       return utf8.decode(base64Decode(encodedKey));
     } catch (e) {
-      throw FormatException('Invalid API key encoding');
+      throw const FormatException('Invalid API key encoding');
     }
   }
 }

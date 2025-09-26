@@ -42,11 +42,12 @@ class ShiftScreen extends HookConsumerWidget {
             const SizedBox(height: Spacing.md),
 
             // Shift History
-            Text('Recent Shifts', style: Theme.of(context).textTheme.titleLarge),
+            Text('Recent Shifts',
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: Spacing.sm),
-            ...shiftState.shiftHistory.take(5).map((shift) => 
-              _ShiftHistoryCard(shift: shift),
-            ),
+            ...shiftState.shiftHistory.take(5).map(
+                  (shift) => _ShiftHistoryCard(shift: shift),
+                ),
           ],
         ),
       ),
@@ -69,19 +70,25 @@ class _CurrentShiftCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.access_time, color: Theme.of(context).colorScheme.primary),
+                Icon(Icons.access_time,
+                    color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: Spacing.xs),
-                Text('Active Shift', style: Theme.of(context).textTheme.titleLarge),
+                Text('Active Shift',
+                    style: Theme.of(context).textTheme.titleLarge),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: Spacing.xs, vertical: Spacing.xxs),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.xs, vertical: Spacing.xxs),
                   decoration: BoxDecoration(
                     color: Colors.green,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
                     'ACTIVE',
-                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -140,9 +147,11 @@ class _OpenShiftCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Open New Shift', style: Theme.of(context).textTheme.titleLarge),
+            Text('Open New Shift',
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: Spacing.sm),
-            const Text('No active shift. Open a new shift to start transactions.'),
+            const Text(
+                'No active shift. Open a new shift to start transactions.'),
             const SizedBox(height: Spacing.md),
             SizedBox(
               width: double.infinity,
@@ -160,7 +169,7 @@ class _OpenShiftCard extends StatelessWidget {
 
   void _showOpenShiftDialog(BuildContext context) {
     final cashController = TextEditingController(text: '1000');
-    
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -239,7 +248,7 @@ class _CloseShiftCard extends StatelessWidget {
 
   void _showCloseShiftDialog(BuildContext context) {
     final cashController = TextEditingController(text: '1000');
-    
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -247,7 +256,7 @@ class _CloseShiftCard extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Enter the cash count to close the shift.'),
+            const Text('Enter the cash count to close the shift.'),
             const SizedBox(height: Spacing.md),
             TextField(
               controller: cashController,
@@ -293,8 +302,10 @@ class _TodaySummaryCard extends StatelessWidget {
           shift.openedAt.year == today.year;
     }).toList();
 
-    final todaySales = todayShifts.fold(0.0, (sum, shift) => sum + shift.counters.totalSalesAmount);
-    final todayTransactions = todayShifts.fold(0, (sum, shift) => sum + shift.counters.totalSales);
+    final todaySales = todayShifts.fold(
+        0.0, (sum, shift) => sum + shift.counters.totalSalesAmount);
+    final todayTransactions =
+        todayShifts.fold(0, (sum, shift) => sum + shift.counters.totalSales);
 
     return Card(
       child: Padding(
@@ -302,7 +313,8 @@ class _TodaySummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Today\'s Summary', style: Theme.of(context).textTheme.titleLarge),
+            Text('Today\'s Summary',
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: Spacing.sm),
             Row(
               children: [
@@ -332,7 +344,8 @@ class _TodaySummaryCard extends StatelessWidget {
                 Expanded(
                   child: _InfoItem(
                     label: 'Status',
-                    value: shiftState.currentShift != null ? 'Active' : 'Closed',
+                    value:
+                        shiftState.currentShift != null ? 'Active' : 'Closed',
                   ),
                 ),
               ],

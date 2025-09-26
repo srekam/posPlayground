@@ -5,11 +5,6 @@ import {
   Typography,
   Grid,
   Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -23,11 +18,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Switch,
-  FormControlLabel,
+  Card,
+  CardContent,
+  Tab,
+  Tabs,
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material';
-import axios from 'axios';
+import { Add, Edit, Delete, Inventory, AttachMoney, LocationOn } from '@mui/icons-material';
 
 export default function Items() {
   const [loading, setLoading] = useState(false);
@@ -35,78 +31,149 @@ export default function Items() {
   const [packages, setPackages] = useState([]);
   const [pricingRules, setPricingRules] = useState([]);
   const [accessZones, setAccessZones] = useState([]);
-  const [activeTab, setActiveTab] = useState('packages');
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState('add');
+  const [selectedItem, setSelectedItem] = useState(null);
 
+  // Mock data for demonstration
   useEffect(() => {
-    fetchData();
+    loadMockData();
   }, []);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      
-      const [packagesRes, rulesRes, zonesRes] = await Promise.all([
-        axios.get('/v1/catalog/packages'),
-        axios.get('/v1/catalog/pricing-rules'),
-        axios.get('/v1/catalog/access-zones')
-      ]);
+  const loadMockData = () => {
+    // Mock packages data
+    const mockPackages = [
+      {
+        id: '1',
+        name: 'Day Pass',
+        description: 'Full day access to all attractions',
+        price: 25.99,
+        duration: 8,
+        status: 'active',
+        category: 'Day Passes'
+      },
+      {
+        id: '2',
+        name: 'Weekend Pass',
+        description: 'Access for Saturday and Sunday',
+        price: 45.99,
+        duration: 16,
+        status: 'active',
+        category: 'Weekend Passes'
+      },
+      {
+        id: '3',
+        name: 'Season Pass',
+        description: 'Unlimited access for 3 months',
+        price: 199.99,
+        duration: 2160,
+        status: 'active',
+        category: 'Season Passes'
+      }
+    ];
 
-      setPackages(packagesRes.data.data || []);
-      setPricingRules(rulesRes.data.data || []);
-      setAccessZones(zonesRes.data.data || []);
-    } catch (err) {
-      console.error('Failed to fetch catalog data:', err);
-      setError('Failed to load catalog data');
-    } finally {
-      setLoading(false);
-    }
+    // Mock pricing rules data
+    const mockPricingRules = [
+      {
+        id: '1',
+        name: 'Student Discount',
+        description: '20% off for students',
+        discount_type: 'percentage',
+        discount_value: 20,
+        conditions: 'Student ID required',
+        status: 'active'
+      },
+      {
+        id: '2',
+        name: 'Family Package',
+        description: 'Buy 3 get 1 free',
+        discount_type: 'free_item',
+        discount_value: 1,
+        conditions: 'Minimum 4 people',
+        status: 'active'
+      }
+    ];
+
+    // Mock access zones data
+    const mockAccessZones = [
+      {
+        id: '1',
+        name: 'Main Playground',
+        description: 'Primary play area with slides and swings',
+        capacity: 100,
+        status: 'active',
+        location: 'Zone A'
+      },
+      {
+        id: '2',
+        name: 'Water Play Area',
+        description: 'Splash pads and water features',
+        capacity: 50,
+        status: 'active',
+        location: 'Zone B'
+      }
+    ];
+
+    setPackages(mockPackages);
+    setPricingRules(mockPricingRules);
+    setAccessZones(mockAccessZones);
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const handleAdd = () => {
+    setDialogMode('add');
+    setSelectedItem(null);
+    setDialogOpen(true);
   };
 
   const handleEdit = (item) => {
-    setEditingItem(item);
-    setOpenDialog(true);
+    setDialogMode('edit');
+    setSelectedItem(item);
+    setDialogOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return;
-    
-    try {
-      await axios.delete(`/v1/catalog/${activeTab}/${id}`);
-      fetchData();
-    } catch (err) {
-      console.error('Failed to delete item:', err);
-      setError('Failed to delete item');
+  const handleDelete = (item) => {
+    if (window.confirm(`Are you sure you want to delete ${item.name}?`)) {
+      // Mock delete - in real app, this would call API
+      console.log('Deleting item:', item);
     }
   };
 
-  const renderPackages = () => (
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setSelectedItem(null);
+  };
+
+  const renderPackagesTable = () => (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
-            <TableCell>Type</TableCell>
+            <TableCell>Description</TableCell>
             <TableCell>Price</TableCell>
-            <TableCell>Quota/Minutes</TableCell>
+            <TableCell>Duration (hrs)</TableCell>
+            <TableCell>Category</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {packages.map((pkg) => (
-            <TableRow key={pkg.package_id}>
+            <TableRow key={pkg.id}>
               <TableCell>{pkg.name}</TableCell>
-              <TableCell>
-                <Chip label={pkg.type} size="small" />
-              </TableCell>
-              <TableCell>฿{pkg.price}</TableCell>
-              <TableCell>{pkg.quota_or_minutes}</TableCell>
+              <TableCell>{pkg.description}</TableCell>
+              <TableCell>${pkg.price}</TableCell>
+              <TableCell>{pkg.duration}</TableCell>
+              <TableCell>{pkg.category}</TableCell>
               <TableCell>
                 <Chip 
-                  label={pkg.active ? 'Active' : 'Inactive'} 
-                  color={pkg.active ? 'success' : 'default'}
+                  label={pkg.status} 
+                  color={pkg.status === 'active' ? 'success' : 'default'}
                   size="small"
                 />
               </TableCell>
@@ -120,9 +187,9 @@ export default function Items() {
                 </Button>
                 <Button
                   size="small"
-                  color="error"
                   startIcon={<Delete />}
-                  onClick={() => handleDelete(pkg.package_id)}
+                  color="error"
+                  onClick={() => handleDelete(pkg)}
                 >
                   Delete
                 </Button>
@@ -134,32 +201,37 @@ export default function Items() {
     </TableContainer>
   );
 
-  const renderPricingRules = () => (
+  const renderPricingRulesTable = () => (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
+            <TableCell>Description</TableCell>
             <TableCell>Type</TableCell>
-            <TableCell>Scope</TableCell>
-            <TableCell>Priority</TableCell>
+            <TableCell>Value</TableCell>
+            <TableCell>Conditions</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {pricingRules.map((rule) => (
-            <TableRow key={rule.rule_id}>
+            <TableRow key={rule.id}>
               <TableCell>{rule.name}</TableCell>
+              <TableCell>{rule.description}</TableCell>
+              <TableCell>{rule.discount_type}</TableCell>
               <TableCell>
-                <Chip label={rule.kind} size="small" />
+                {rule.discount_type === 'percentage' 
+                  ? `${rule.discount_value}%` 
+                  : `${rule.discount_value} item(s)`
+                }
               </TableCell>
-              <TableCell>{rule.scope}</TableCell>
-              <TableCell>{rule.priority}</TableCell>
+              <TableCell>{rule.conditions}</TableCell>
               <TableCell>
                 <Chip 
-                  label={rule.active ? 'Active' : 'Inactive'} 
-                  color={rule.active ? 'success' : 'default'}
+                  label={rule.status} 
+                  color={rule.status === 'active' ? 'success' : 'default'}
                   size="small"
                 />
               </TableCell>
@@ -173,9 +245,9 @@ export default function Items() {
                 </Button>
                 <Button
                   size="small"
-                  color="error"
                   startIcon={<Delete />}
-                  onClick={() => handleDelete(rule.rule_id)}
+                  color="error"
+                  onClick={() => handleDelete(rule)}
                 >
                   Delete
                 </Button>
@@ -187,34 +259,30 @@ export default function Items() {
     </TableContainer>
   );
 
-  const renderAccessZones = () => (
+  const renderAccessZonesTable = () => (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
             <TableCell>Description</TableCell>
-            <TableCell>Device Binding</TableCell>
+            <TableCell>Capacity</TableCell>
+            <TableCell>Location</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {accessZones.map((zone) => (
-            <TableRow key={zone.zone_id}>
+            <TableRow key={zone.id}>
               <TableCell>{zone.name}</TableCell>
               <TableCell>{zone.description}</TableCell>
+              <TableCell>{zone.capacity}</TableCell>
+              <TableCell>{zone.location}</TableCell>
               <TableCell>
                 <Chip 
-                  label={zone.device_binding ? 'Required' : 'Optional'} 
-                  color={zone.device_binding ? 'warning' : 'default'}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>
-                <Chip 
-                  label={zone.active ? 'Active' : 'Inactive'} 
-                  color={zone.active ? 'success' : 'default'}
+                  label={zone.status} 
+                  color={zone.status === 'active' ? 'success' : 'default'}
                   size="small"
                 />
               </TableCell>
@@ -228,9 +296,9 @@ export default function Items() {
                 </Button>
                 <Button
                   size="small"
-                  color="error"
                   startIcon={<Delete />}
-                  onClick={() => handleDelete(zone.zone_id)}
+                  color="error"
+                  onClick={() => handleDelete(zone)}
                 >
                   Delete
                 </Button>
@@ -242,45 +310,35 @@ export default function Items() {
     </TableContainer>
   );
 
+  const getTabIcon = (index) => {
+    const icons = [<Inventory />, <AttachMoney />, <LocationOn />];
+    return icons[index] || <Inventory />;
+  };
+
+  const getTabLabel = (index) => {
+    const labels = ['Packages', 'Pricing Rules', 'Access Zones'];
+    return labels[index] || 'Unknown';
+  };
+
+  const getTabCount = (index) => {
+    const counts = [packages.length, pricingRules.length, accessZones.length];
+    return counts[index] || 0;
+  };
+
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">
-          Items & Catalog
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Items Management
         </Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => setOpenDialog(true)}
+          onClick={handleAdd}
         >
-          Add {activeTab.slice(0, -1)}
+          Add {getTabLabel(activeTab).slice(0, -1)}
         </Button>
       </Box>
-
-      {/* Tabs */}
-      <Paper sx={{ mb: 2 }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex' }}>
-            {[
-              { key: 'packages', label: 'Packages' },
-              { key: 'pricing-rules', label: 'Pricing Rules' },
-              { key: 'access-zones', label: 'Access Zones' }
-            ].map((tab) => (
-              <Button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                sx={{
-                  borderBottom: activeTab === tab.key ? 2 : 0,
-                  borderColor: 'primary.main',
-                  borderRadius: 0,
-                }}
-              >
-                {tab.label}
-              </Button>
-            ))}
-          </Box>
-        </Box>
-      </Paper>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -288,31 +346,61 @@ export default function Items() {
         </Alert>
       )}
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          {activeTab === 'packages' && renderPackages()}
-          {activeTab === 'pricing-rules' && renderPricingRules()}
-          {activeTab === 'access-zones' && renderAccessZones()}
-        </>
-      )}
+      <Paper sx={{ mb: 2 }}>
+        <Tabs value={activeTab} onChange={handleTabChange}>
+          <Tab 
+            icon={getTabIcon(0)} 
+            label={`${getTabLabel(0)} (${getTabCount(0)})`}
+            iconPosition="start"
+          />
+          <Tab 
+            icon={getTabIcon(1)} 
+            label={`${getTabLabel(1)} (${getTabCount(1)})`}
+            iconPosition="start"
+          />
+          <Tab 
+            icon={getTabIcon(2)} 
+            label={`${getTabLabel(2)} (${getTabCount(2)})`}
+            iconPosition="start"
+          />
+        </Tabs>
+      </Paper>
 
-      {/* Edit Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              {activeTab === 0 && renderPackagesTable()}
+              {activeTab === 1 && renderPricingRulesTable()}
+              {activeTab === 2 && renderAccessZonesTable()}
+            </>
+          )}
+        </Grid>
+      </Grid>
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingItem ? 'Edit' : 'Add'} {activeTab.slice(0, -1)}
+          {dialogMode === 'add' ? 'Add' : 'Edit'} {getTabLabel(activeTab).slice(0, -1)}
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="text.secondary">
-            Edit form would be implemented here with proper validation and API integration.
+          <Typography>
+            {dialogMode === 'add' 
+              ? `Add a new ${getTabLabel(activeTab).slice(0, -1).toLowerCase()}` 
+              : `Edit ${selectedItem?.name || 'item'}`
+            }
           </Typography>
+          {/* Form fields would go here */}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button variant="contained">Save</Button>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button variant="contained">
+            {dialogMode === 'add' ? 'Add' : 'Save'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
