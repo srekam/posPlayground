@@ -1,0 +1,48 @@
+{
+  "title": "Items Management",
+  "tabs": {
+    "items": "Items",
+    "inventory": "Inventory",
+    "bundles": "Bundles",
+    "accessZones": "Access Zones",
+    "quickActions": "Quick Actions"
+  },
+  "filters": {
+    "searchPlaceholder": "Search items...",
+    "type": "Type",
+    "category": "Category",
+    "status": "Status",
+    "clear": "Clear Filters",
+    "allTypes": "All Types",
+    "allCategories": "All Categories",
+    "allStatus": "All Status"
+  },
+  "columns": {
+    "name": "Name",
+    "type": "Type",
+    "price": "Price",
+    "category": "Category",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "badges": {
+    "stockedGood": "Stocked Good",
+    "passTime": "Pass Time",
+    "service": "Service",
+    "rideBundle": "Ride Bundle",
+    "singleRide": "Single Ride",
+    "bundle": "Bundle",
+    "upgrade": "Upgrade",
+    "fee": "Fee",
+    "discount": "Discount"
+  },
+  "actions": {
+    "addItem": "Add Item",
+    "view": "View",
+    "edit": "Edit",
+    "clone": "Clone",
+    "delete": "Delete",
+    "active": "Active",
+    "inactive": "Inactive"
+  }
+}

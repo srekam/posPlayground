@@ -1,0 +1,48 @@
+{
+  "title": "จัดการสินค้า",
+  "tabs": {
+    "items": "สินค้า",
+    "inventory": "คลังสินค้า",
+    "bundles": "แพ็คเกจ",
+    "accessZones": "เขตพื้นที่",
+    "quickActions": "การดำเนินการด่วน"
+  },
+  "filters": {
+    "searchPlaceholder": "ค้นหาสินค้า...",
+    "type": "ประเภท",
+    "category": "หมวดหมู่",
+    "status": "สถานะ",
+    "clear": "ล้างตัวกรอง",
+    "allTypes": "ทุกประเภท",
+    "allCategories": "ทุกหมวดหมู่",
+    "allStatus": "ทุกสถานะ"
+  },
+  "columns": {
+    "name": "ชื่อ",
+    "type": "ประเภท",
+    "price": "ราคา",
+    "category": "หมวดหมู่",
+    "status": "สถานะ",
+    "actions": "การดำเนินการ"
+  },
+  "badges": {
+    "stockedGood": "สินค้าคงคลัง",
+    "passTime": "ตั๋วเข้า",
+    "service": "บริการ",
+    "rideBundle": "แพ็คเกจเครื่องเล่น",
+    "singleRide": "เครื่องเล่นเดียว",
+    "bundle": "แพ็คเกจ",
+    "upgrade": "อัพเกรด",
+    "fee": "ค่าธรรมเนียม",
+    "discount": "ส่วนลด"
+  },
+  "actions": {
+    "addItem": "เพิ่มสินค้า",
+    "view": "ดู",
+    "edit": "แก้ไข",
+    "clone": "คัดลอก",
+    "delete": "ลบ",
+    "active": "ใช้งาน",
+    "inactive": "ไม่ใช้งาน"
+  }
+}

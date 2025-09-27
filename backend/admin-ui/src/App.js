@@ -5,6 +5,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
+// Initialize i18n
+import './i18n';
+
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';

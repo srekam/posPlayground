@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Paper,
@@ -67,20 +68,22 @@ import BundleManager from '../components/BundleManager';
 import AccessZonesManager from '../components/AccessZonesManager';
 import QuickActions from '../components/QuickActions';
 
-// Item type configurations
+// Item type configurations - will be updated to use translations
 const ITEM_TYPES = {
-  STOCKED_GOOD: { label: 'Stocked Good', icon: <LocalShipping />, color: 'primary' },
-  NON_STOCKED_SERVICE: { label: 'Service', icon: <Receipt />, color: 'secondary' },
-  PASS_TIME: { label: 'Pass (Time)', icon: <Timer />, color: 'success' },
-  RIDE_CREDIT_BUNDLE: { label: 'Ride Bundle', icon: <ShoppingCart />, color: 'info' },
-  SINGLE_RIDE: { label: 'Single Ride', icon: <ShoppingCart />, color: 'info' },
-  BUNDLE: { label: 'Bundle', icon: <Inventory />, color: 'warning' },
-  UPGRADE: { label: 'Upgrade', icon: <Upgrade />, color: 'error' },
-  FEE: { label: 'Fee', icon: <AttachMoney />, color: 'default' },
-  DISCOUNT: { label: 'Discount', icon: <AttachMoney />, color: 'default' },
+  STOCKED_GOOD: { labelKey: 'badges.stockedGood', icon: <LocalShipping />, color: 'primary' },
+  NON_STOCKED_SERVICE: { labelKey: 'badges.service', icon: <Receipt />, color: 'secondary' },
+  PASS_TIME: { labelKey: 'badges.passTime', icon: <Timer />, color: 'success' },
+  RIDE_CREDIT_BUNDLE: { labelKey: 'badges.rideBundle', icon: <ShoppingCart />, color: 'info' },
+  SINGLE_RIDE: { labelKey: 'badges.singleRide', icon: <ShoppingCart />, color: 'info' },
+  BUNDLE: { labelKey: 'badges.bundle', icon: <Inventory />, color: 'warning' },
+  UPGRADE: { labelKey: 'badges.upgrade', icon: <Upgrade />, color: 'error' },
+  FEE: { labelKey: 'badges.fee', icon: <AttachMoney />, color: 'default' },
+  DISCOUNT: { labelKey: 'badges.discount', icon: <AttachMoney />, color: 'default' },
 };
 
 export default function Items() {
+  const { t } = useTranslation('items');
+  
   // State management
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -300,7 +303,14 @@ export default function Items() {
   };
 
   const getItemTypeInfo = (type) => {
-    return ITEM_TYPES[type] || { label: type, icon: <Category />, color: 'default' };
+    const typeConfig = ITEM_TYPES[type];
+    if (typeConfig) {
+      return {
+        ...typeConfig,
+        label: t(typeConfig.labelKey)
+      };
+    }
+    return { label: type, icon: <Category />, color: 'default' };
   };
 
   const renderFilters = () => (
@@ -309,7 +319,7 @@ export default function Items() {
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
-            label="Search items"
+            label={t('filters.searchPlaceholder')}
             value={filters.q}
             onChange={(e) => handleFilterChange('q', e.target.value)}
             InputProps={{
@@ -323,14 +333,14 @@ export default function Items() {
             <Select
               value={filters.type}
               onChange={(e) => handleFilterChange('type', e.target.value)}
-              label="Type"
+              label={t('filters.type')}
             >
-              <MenuItem value="">All Types</MenuItem>
+              <MenuItem value="">{t('filters.allTypes')}</MenuItem>
               {Object.entries(ITEM_TYPES).map(([key, config]) => (
                 <MenuItem key={key} value={key}>
                   <Stack direction="row" alignItems="center" spacing={1}>
                     {config.icon}
-                    <span>{config.label}</span>
+                    <span>{t(config.labelKey)}</span>
                   </Stack>
                 </MenuItem>
               ))}
@@ -343,9 +353,9 @@ export default function Items() {
             <Select
               value={filters.category_id}
               onChange={(e) => handleFilterChange('category_id', e.target.value)}
-              label="Category"
+              label={t('filters.category')}
             >
-              <MenuItem value="">All Categories</MenuItem>
+              <MenuItem value="">{t('filters.allCategories')}</MenuItem>
               {categories.map((category) => (
                 <MenuItem key={category.category_id} value={category.category_id}>
                   {category.name}
@@ -360,11 +370,11 @@ export default function Items() {
             <Select
               value={filters.active}
               onChange={(e) => handleFilterChange('active', e.target.value)}
-              label="Status"
+              label={t('filters.status')}
             >
-              <MenuItem value="">All Status</MenuItem>
-              <MenuItem value="true">Active</MenuItem>
-              <MenuItem value="false">Inactive</MenuItem>
+              <MenuItem value="">{t('filters.allStatus')}</MenuItem>
+              <MenuItem value="true">{t('actions.active')}</MenuItem>
+              <MenuItem value="false">{t('actions.inactive')}</MenuItem>
             </Select>
           </FormControl>
         </Grid>
@@ -375,7 +385,7 @@ export default function Items() {
               startIcon={<FilterList />}
               onClick={() => setFilters({ type: '', category_id: '', active: '', q: '' })}
             >
-              Clear Filters
+              {t('filters.clear')}
             </Button>
           </Stack>
         </Grid>
@@ -423,7 +433,7 @@ export default function Items() {
               onClick={() => setSelectedItems([])}
               size="small"
             >
-              Clear
+              {t('filters.clear')}
             </Button>
           </Grid>
         </Grid>
@@ -443,12 +453,12 @@ export default function Items() {
                 onChange={handleSelectAll}
               />
             </TableCell>
-            <TableCell>Name</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Price</TableCell>
-            <TableCell>Category</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell>{t('columns.name')}</TableCell>
+            <TableCell>{t('columns.type')}</TableCell>
+            <TableCell>{t('columns.price')}</TableCell>
+            <TableCell>{t('columns.category')}</TableCell>
+            <TableCell>{t('columns.status')}</TableCell>
+            <TableCell>{t('columns.actions')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -515,27 +525,27 @@ export default function Items() {
                         size="small"
                       />
                     }
-                    label={item.active ? 'Active' : 'Inactive'}
+                    label={item.active ? t('actions.active') : t('actions.inactive')}
                   />
                 </TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={1}>
-                    <Tooltip title="View">
+                    <Tooltip title={t('actions.view')}>
                       <IconButton size="small" onClick={() => handleEdit(item)}>
                         <Visibility />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Edit">
+                    <Tooltip title={t('actions.edit')}>
                       <IconButton size="small" onClick={() => handleEdit(item)}>
                         <Edit />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Clone">
+                    <Tooltip title={t('actions.clone')}>
                       <IconButton size="small" onClick={() => handleClone(item)}>
                         <ContentCopy />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete">
+                    <Tooltip title={t('actions.delete')}>
                       <IconButton size="small" color="error" onClick={() => handleDelete(item)}>
                         <Delete />
                       </IconButton>
@@ -572,7 +582,13 @@ export default function Items() {
   };
 
   const getTabLabel = (index) => {
-    const labels = ['Items', 'Inventory', 'Bundles', 'Access Zones', 'Quick Actions'];
+    const labels = [
+      t('tabs.items'), 
+      t('tabs.inventory'), 
+      t('tabs.bundles'), 
+      t('tabs.accessZones'), 
+      t('tabs.quickActions')
+    ];
     return labels[index] || 'Unknown';
   };
 
@@ -585,7 +601,7 @@ export default function Items() {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Items Management
+          {t('title')}
         </Typography>
         {activeTab === 0 && (
           <Button
@@ -593,7 +609,7 @@ export default function Items() {
             startIcon={<Add />}
             onClick={handleAdd}
           >
-            Add Item
+            {t('actions.addItem')}
           </Button>
         )}
       </Box>

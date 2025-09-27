@@ -1,0 +1,62 @@
+{
+  "title": "Settings",
+  "sections": {
+    "features": "Features",
+    "billing": "Billing & Subscription",
+    "paymentTypes": "Payment Types",
+    "tax": "Tax Settings",
+    "receipt": "Receipt Settings"
+  },
+  "actions": {
+    "save": "Save Settings",
+    "saving": "Saving..."
+  },
+  "features": {
+    "kioskMode": "Enable Kiosk Mode",
+    "gateBinding": "Enable Gate Device Binding",
+    "multiPrice": "Enable Multi-Price Packages",
+    "webhooks": "Enable Webhooks",
+    "offlineSync": "Enable Offline Sync"
+  },
+  "billing": {
+    "plan": "Plan",
+    "trialEnd": "Trial End"
+  },
+  "payment": {
+    "cash": "Cash",
+    "qr": "Qr",
+    "card": "Card",
+    "other": "Other",
+    "enabled": "Enabled",
+    "feeType": "Fee Type",
+    "feeAmount": "Fee Amount",
+    "feeTypes": {
+      "none": "No Fee",
+      "percentage": "Percentage",
+      "fixed": "Fixed"
+    }
+  },
+  "tax": {
+    "inclusive": "Tax Inclusive Pricing",
+    "defaultRate": "Default Tax Rate (%)"
+  },
+  "receipt": {
+    "header": "Receipt Header",
+    "footer": "Receipt Footer",
+    "paperWidth": "Paper Width (mm)"
+  },
+  "placeholders": {
+    "search": "Search...",
+    "enterNumber": "Enter a number",
+    "enterText": "Enter text"
+  },
+  "messages": {
+    "saved": "Settings saved",
+    "error": "Failed to save settings",
+    "validation": {
+      "required": "This field is required",
+      "number": "Please enter a valid number",
+      "percentRange": "Enter a percentage between 0 and 100"
+    }
+  }
+}
