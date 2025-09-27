@@ -102,7 +102,10 @@ class ErrorCode:
     RESOURCE_NOT_FOUND = "E_RESOURCE_NOT_FOUND"
     
     # Permission errors
-    PERMISSION = "E_PERMISSION"
+    E_PERMISSION = "E_PERMISSION"
+    E_NOT_FOUND = "E_NOT_FOUND"
+    E_DUPLICATE = "E_DUPLICATE"
+    E_RULE_CONFLICT = "E_RULE_CONFLICT"
 
 
 class PlayParkException(Exception):

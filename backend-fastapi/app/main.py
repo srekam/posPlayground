@@ -33,6 +33,20 @@ from app.routers import (
     deep_link,
     stores,
 )
+from app.routers.products import router as products_router
+from app.routers.categories import router as categories_router
+from app.routers.payments import router as payments_router
+from app.routers.taxes import router as taxes_router
+from app.routers.pricing import router as pricing_router
+from app.routers.redemptions import router as redemptions_router
+from app.routers.open_tickets import router as open_tickets_router
+from app.routers.cash_drawers import router as cash_drawers_router
+from app.routers.timecards import router as timecards_router
+from app.routers.customers import router as customers_router
+from app.routers.approvals import router as approvals_router
+from app.routers.provider_health import router as provider_health_router
+from app.routers.usage_counters import router as usage_counters_router
+from app.routers.media import router as media_router
 from app.utils.errors import PlayParkException, create_error_response
 from app.utils.logging import setup_logging
 
@@ -180,6 +194,8 @@ app.include_router(deep_link.router, tags=["Deep Links"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(roles.router, prefix="/api/v1/roles", tags=["Roles"])
 app.include_router(stores.router, prefix="/api/v1", tags=["Stores"])
+app.include_router(products_router, prefix="/api/v1/products", tags=["Products"])
+app.include_router(categories_router, prefix="/api/v1/categories", tags=["Categories"])
 app.include_router(catalog.router, prefix="/api/v1/catalog", tags=["Catalog"])
 app.include_router(sales.router, prefix="/api/v1/sales", tags=["Sales"])
 app.include_router(tickets.router, prefix="/api/v1/tickets", tags=["Tickets"])
@@ -189,6 +205,20 @@ app.include_router(settings_router.router, prefix="/api/v1/settings", tags=["Set
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["Webhooks"])
 app.include_router(sync.router, prefix="/api/v1/sync", tags=["Sync"])
 app.include_router(provider.router, prefix="/provider", tags=["Provider"])
+
+# New POS API routers
+app.include_router(payments_router, prefix="/api/v1/payments", tags=["Payments"])
+app.include_router(taxes_router, prefix="/api/v1/taxes", tags=["Taxes"])
+app.include_router(pricing_router, prefix="/api/v1/pricing", tags=["Pricing"])
+app.include_router(redemptions_router, prefix="/api/v1/redemptions", tags=["Redemptions"])
+app.include_router(open_tickets_router, prefix="/api/v1/open_tickets", tags=["Open Tickets"])
+app.include_router(cash_drawers_router, prefix="/api/v1/cash_drawers", tags=["Cash Drawers"])
+app.include_router(timecards_router, prefix="/api/v1/timecards", tags=["Timecards"])
+app.include_router(customers_router, prefix="/api/v1/customers", tags=["Customers"])
+app.include_router(approvals_router, prefix="/api/v1/approvals", tags=["Approvals"])
+app.include_router(provider_health_router, prefix="/api/v1/provider", tags=["Provider Health"])
+app.include_router(usage_counters_router, prefix="/api/v1/usage", tags=["Usage Counters"])
+app.include_router(media_router, tags=["Media"])
 
 
 if __name__ == "__main__":

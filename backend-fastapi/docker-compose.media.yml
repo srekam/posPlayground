@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # MinIO for S3-compatible storage
+  minio:
+    image: minio/minio:latest
+    container_name: playpark-minio
+    ports:
+      - "9000:9000"    # API port
+      - "9001:9001"    # Console port
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - playpark-network
+
+  # Redis for background task processing
+  redis:
+    image: redis:7-alpine
+    container_name: playpark-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - playpark-network
+
+  # MongoDB (if not already running)
+  mongodb:
+    image: mongo:7.0
+    container_name: playpark-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: playpark
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - playpark-network
+
+volumes:
+  minio_data:
+    driver: local
+  redis_data:
+    driver: local
+  mongodb_data:
+    driver: local
+
+networks:
+  playpark-network:
+    driver: bridge

@@ -136,6 +136,87 @@ async def get_sales(
         )
 
 
+@router.put("/{sale_id}", response_model=SaleResponse)
+async def update_sale(
+    sale_id: str,
+    request: SaleCreateRequest,
+    current_user,
+    sales_service: SalesService = Depends(get_sales_service)
+) -> SaleResponse:
+    """Update a sale"""
+    
+    try:
+        # Check if sale exists
+        existing_sale = await sales_service.get_sale_by_id(sale_id, current_user)
+        if not existing_sale:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "error": "E_SALE_NOT_FOUND",
+                    "message": "Sale not found"
+                }
+            )
+        
+        # Update sale
+        result = await sales_service.update_sale(sale_id, request, current_user)
+        return SaleResponse(**result)
+    
+    except HTTPException:
+        raise
+    except PlayParkException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": "E_INTERNAL_ERROR",
+                "message": "Failed to update sale"
+            }
+        )
+
+
+@router.delete("/{sale_id}")
+async def delete_sale(
+    sale_id: str,
+    current_user,
+    sales_service: SalesService = Depends(get_sales_service)
+) -> Dict[str, Any]:
+    """Delete a sale"""
+    
+    try:
+        # Check if sale exists
+        existing_sale = await sales_service.get_sale_by_id(sale_id, current_user)
+        if not existing_sale:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    "error": "E_SALE_NOT_FOUND",
+                    "message": "Sale not found"
+                }
+            )
+        
+        # Delete sale
+        await sales_service.delete_sale(sale_id, current_user)
+        
+        return {
+            "success": True,
+            "message": "Sale deleted successfully"
+        }
+    
+    except HTTPException:
+        raise
+    except PlayParkException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": "E_INTERNAL_ERROR",
+                "message": "Failed to delete sale"
+            }
+        )
+
+
 @router.post("/refunds", response_model=RefundResponse)
 async def request_refund(
     request: RefundRequest,

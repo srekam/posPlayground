@@ -127,6 +127,91 @@ async def ensure_indexes() -> None:
         await _database.export_files.create_index("file_id", unique=True)
         await _database.export_files.create_index([("expires_at", 1)], expireAfterSeconds=0)
         
+        # New POS API collection indexes
+        # Payments collection indexes
+        await _database.payments.create_index("payment_id", unique=True)
+        await _database.payments.create_index([("sale_id", 1)])
+        await _database.payments.create_index([("store_id", 1), ("created_at", -1)])
+        await _database.payments.create_index([("status", 1), ("created_at", -1)])
+        
+        # Taxes collection indexes
+        await _database.taxes.create_index([("tenant_id", 1), ("active", 1)])
+        
+        # Payment types collection indexes
+        await _database.payment_types.create_index([("tenant_id", 1), ("active", 1)])
+        
+        # Discounts collection indexes
+        await _database.discounts.create_index([("tenant_id", 1), ("active", 1)])
+        
+        # Pricing rules collection indexes
+        await _database.pricing_rules.create_index([("tenant_id", 1), ("scope", 1), ("active", 1)])
+        await _database.pricing_rules.create_index([("priority", 1)])
+        
+        # Price lists collection indexes
+        await _database.price_lists.create_index([("tenant_id", 1), ("active", 1)])
+        await _database.price_list_items.create_index([("price_list_id", 1)])
+        
+        # Redemptions collection indexes
+        await _database.redemptions.create_index([("ticket_id", 1)])
+        await _database.redemptions.create_index([("device_id", 1), ("redeemed_at", -1)])
+        await _database.redemptions.create_index([("store_id", 1), ("redeemed_at", -1)])
+        
+        # Access zones collection indexes
+        await _database.access_zones.create_index([("store_id", 1)])
+        await _database.package_zone_map.create_index([("package_id", 1)])
+        
+        # Open tickets collection indexes
+        await _database.open_tickets.create_index([("tenant_id", 1), ("store_id", 1), ("status", 1)])
+        await _database.open_tickets.create_index([("expires_at", 1)])
+        
+        # Cash drawers collection indexes
+        await _database.cash_drawers.create_index([("store_id", 1), ("opened_at", -1)])
+        await _database.cash_movements.create_index([("drawer_id", 1), ("timestamp", -1)])
+        
+        # Timecards collection indexes
+        await _database.timecards.create_index([("employee_id", 1), ("clock_in", -1)])
+        
+        # Customers collection indexes
+        await _database.customers.create_index([("tenant_id", 1), ("phone", 1)])
+        await _database.customers.create_index([("tenant_id", 1), ("email", 1)])
+        await _database.customers.create_index([("tenant_id", 1), ("name", "text")])
+        
+        # Settings collection indexes
+        await _database.settings.create_index([("tenant_id", 1), ("key", 1)])
+        await _database.settings.create_index([("store_id", 1), ("key", 1)])
+        await _database.feature_flags.create_index([("key", 1)])
+        
+        # Receipt templates collection indexes
+        await _database.receipt_templates.create_index([("store_id", 1)])
+        await _database.printers.create_index([("device_id", 1)])
+        
+        # Secrets collection indexes
+        await _database.secrets.create_index([("kind", 1)])
+        
+        # Reason codes collection indexes
+        await _database.reason_codes.create_index([("tenant_id", 1), ("code", 1)])
+        
+        # Approvals collection indexes
+        await _database.approvals.create_index([("store_id", 1), ("status", 1)])
+        
+        # Usage counters collection indexes
+        await _database.usage_counters.create_index([("tenant_id", 1), ("period", 1)])
+        
+        # Device heartbeats collection indexes
+        await _database.device_heartbeats.create_index([("device_id", 1), ("timestamp", -1)])
+        
+        # Provider alerts collection indexes
+        await _database.provider_alerts.create_index([("status", 1), ("severity", 1), ("last_seen", -1)])
+        
+        # Provider audits collection indexes
+        await _database.provider_audits.create_index([("tenant_id", 1), ("timestamp", -1)])
+        
+        # Provider metrics daily collection indexes
+        await _database.provider_metrics_daily.create_index([("tenant_id", 1), ("date", 1)])
+        
+        # Pairing logs collection indexes
+        await _database.pairing_logs.create_index([("store_id", 1), ("used_at", -1)])
+        
         logger.info("Database indexes ensured successfully")
         
     except Exception as e:

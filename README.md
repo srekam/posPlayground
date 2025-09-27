@@ -1,6 +1,27 @@
 # PlayPark POS System
 
-A comprehensive Point of Sale (POS) system for indoor playgrounds and entertainment venues, built with Flutter and Node.js.
+**Version 1.15.1 - Media Foundation** 🎉
+
+A comprehensive Point of Sale (POS) system for indoor playgrounds and entertainment venues, built with Flutter and FastAPI.
+
+## 🆕 What's New in v1.15.1
+
+### 🎯 Version Breakdown
+- **App (1)**: Flutter mobile application - No changes
+- **API (15)**: FastAPI backend - **Major media storage backbone implementation**
+- **Web UI (1)**: Web interface - No changes
+
+### 🚀 Media Storage Backbone
+This release introduces a comprehensive media storage system featuring:
+- **S3/MinIO Integration**: Direct client-to-storage uploads with presigned URLs
+- **Image Processing**: Automatic variant generation (thumb, sm, md, lg) in WebP format
+- **Background Processing**: Redis-powered async image processing
+- **Security**: MIME validation, file size limits, EXIF stripping, and deduplication
+- **CDN Support**: Fast global delivery with proper caching headers
+- **8 New API Endpoints**: Complete media management capabilities
+
+👉 **[Read Full Release Notes](RELEASE_NOTES_v1.15.1.md)**  
+👉 **[Media API Documentation](backend-fastapi/MEDIA_API_DOCUMENTATION.md)**
 
 ## 🚀 Quick Start
 
@@ -16,9 +37,27 @@ flutter run -d chrome --debug
 flutter run -d android --debug
 ```
 
-### Backend Server
+### Backend Server (FastAPI)
 ```bash
-# Navigate to backend directory
+# Navigate to backend-fastapi directory
+cd backend-fastapi
+
+# Setup media infrastructure (MinIO, Redis, MongoDB)
+./setup_media.sh
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Start FastAPI server
+python -m uvicorn app.main:app --reload --port 48080
+
+# Or start with Docker
+docker-compose -f docker-compose.media.yml up -d
+```
+
+### Legacy Backend (Node.js)
+```bash
+# Navigate to backend directory (legacy)
 cd backend
 
 # Start with Docker (recommended)
@@ -56,6 +95,13 @@ The comprehensive documentation includes:
 
 ## 🔧 Demo Credentials
 
+### FastAPI Backend (v1.15.1)
+- **Backend URL**: `http://localhost:48080/api/v1`
+- **API Docs**: `http://localhost:48080/docs`
+- **Media API**: `http://localhost:48080/api/v1/media`
+- **MinIO Console**: `http://localhost:9001` (admin/minioadmin)
+
+### Legacy Backend (Node.js)
 - **Backend URL**: `http://localhost:48080/v1`
 - **Site Key**: `tenant_demo_01:store_demo_01:demo-secret-key`
 - **Manager Email**: `manager@playpark.demo`

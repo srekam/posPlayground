@@ -16,7 +16,8 @@ class CatalogRepository(BaseRepository, LoggerMixin):
     """Catalog repository"""
     
     def __init__(self, db: AsyncIOMotorDatabase):
-        super().__init__(db, "products")
+        super().__init__("products", Product)
+        self.db = db
         self.categories_collection = db["categories"]
         self.packages_collection = db["packages"]
         self.access_zones_collection = db["access_zones"]
@@ -26,6 +27,17 @@ class CatalogRepository(BaseRepository, LoggerMixin):
     async def get_product_by_id(self, product_id: str) -> Optional[Product]:
         """Get product by ID"""
         return await self.get_by_id(product_id)
+    
+    async def get_products(self, store_id: str, category_id: Optional[str] = None, active: Optional[bool] = None, skip: int = 0, limit: int = 100) -> List[Product]:
+        """Get products with filtering"""
+        filter_dict = {"store_id": store_id}
+        if category_id:
+            filter_dict["category_id"] = category_id
+        if active is not None:
+            filter_dict["active"] = active
+        
+        cursor = self.collection.find(filter_dict).skip(skip).limit(limit)
+        return [Product(**doc) async for doc in cursor]
     
     async def get_products_by_store(self, store_id: str, skip: int = 0, limit: int = 100) -> List[Product]:
         """Get products by store"""
@@ -65,8 +77,19 @@ class CatalogRepository(BaseRepository, LoggerMixin):
     # Category methods
     async def get_category_by_id(self, category_id: str) -> Optional[Category]:
         """Get category by ID"""
-        doc = await self.categories_collection.find_one({"_id": category_id})
+        doc = await self.categories_collection.find_one({"category_id": category_id})
         return Category(**doc) if doc else None
+    
+    async def get_categories(self, store_id: str, parent_id: Optional[str] = None, active: Optional[bool] = None, skip: int = 0, limit: int = 100) -> List[Category]:
+        """Get categories with filtering"""
+        filter_dict = {"store_id": store_id}
+        if parent_id:
+            filter_dict["parent_id"] = parent_id
+        if active is not None:
+            filter_dict["active"] = active
+        
+        cursor = self.categories_collection.find(filter_dict).skip(skip).limit(limit)
+        return [Category(**doc) async for doc in cursor]
     
     async def get_categories_by_store(self, store_id: str) -> List[Category]:
         """Get categories by store"""
@@ -79,11 +102,36 @@ class CatalogRepository(BaseRepository, LoggerMixin):
         category.id = doc.inserted_id
         return category
     
+    async def update_category(self, category_id: str, updates: Dict[str, Any]) -> Optional[Category]:
+        """Update category"""
+        result = await self.categories_collection.update_one(
+            {"category_id": category_id}, 
+            {"$set": updates}
+        )
+        if result.modified_count:
+            doc = await self.categories_collection.find_one({"category_id": category_id})
+            return Category(**doc) if doc else None
+        return None
+    
+    async def delete_category(self, category_id: str) -> bool:
+        """Delete category"""
+        result = await self.categories_collection.delete_one({"category_id": category_id})
+        return result.deleted_count > 0
+    
     # Package methods
     async def get_package_by_id(self, package_id: str) -> Optional[Package]:
         """Get package by ID"""
-        doc = await self.packages_collection.find_one({"_id": package_id})
+        doc = await self.packages_collection.find_one({"package_id": package_id})
         return Package(**doc) if doc else None
+    
+    async def get_packages(self, store_id: str, active: Optional[bool] = None, skip: int = 0, limit: int = 100) -> List[Package]:
+        """Get packages with filtering"""
+        filter_dict = {"store_id": store_id}
+        if active is not None:
+            filter_dict["active"] = active
+        
+        cursor = self.packages_collection.find(filter_dict).skip(skip).limit(limit)
+        return [Package(**doc) async for doc in cursor]
     
     async def get_packages_by_store(self, store_id: str) -> List[Package]:
         """Get packages by store"""
@@ -95,6 +143,22 @@ class CatalogRepository(BaseRepository, LoggerMixin):
         doc = await self.packages_collection.insert_one(package.dict())
         package.id = doc.inserted_id
         return package
+    
+    async def update_package(self, package_id: str, updates: Dict[str, Any]) -> Optional[Package]:
+        """Update package"""
+        result = await self.packages_collection.update_one(
+            {"package_id": package_id}, 
+            {"$set": updates}
+        )
+        if result.modified_count:
+            doc = await self.packages_collection.find_one({"package_id": package_id})
+            return Package(**doc) if doc else None
+        return None
+    
+    async def delete_package(self, package_id: str) -> bool:
+        """Delete package"""
+        result = await self.packages_collection.delete_one({"package_id": package_id})
+        return result.deleted_count > 0
     
     # Access Zone methods
     async def get_access_zone_by_id(self, zone_id: str) -> Optional[AccessZone]:

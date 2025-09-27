@@ -1,7 +1,7 @@
 """
 Application Configuration using Pydantic Settings
 """
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import Field, validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     API_VERSION: str = "v1"
     ENVIRONMENT: str = Field(default="development", description="Environment: development, staging, production")
     DEBUG: bool = Field(default=False, description="Enable debug mode")
-    PORT: int = Field(default=50080, description="Server port")
+    PORT: int = Field(default=48080, description="Server port")
     HOST: str = Field(default="0.0.0.0", description="Server host")
     
     # Security
@@ -77,6 +77,31 @@ class Settings(BaseSettings):
     COOKIE_HTTP_ONLY: bool = Field(default=True, description="HttpOnly cookie flag")
     COOKIE_SAME_SITE: str = Field(default="lax", description="SameSite cookie attribute")
     COOKIE_DOMAIN: Optional[str] = Field(default=None, description="Cookie domain")
+    
+    # Media Storage (S3/MinIO)
+    S3_ENDPOINT: str = Field(default="http://localhost:9000", description="S3-compatible storage endpoint")
+    S3_REGION: str = Field(default="us-east-1", description="S3 region")
+    S3_BUCKET: str = Field(default="media", description="S3 bucket for media storage")
+    S3_ACCESS_KEY: str = Field(default="minioadmin", description="S3 access key")
+    S3_SECRET_KEY: str = Field(default="minioadmin", description="S3 secret key")
+    S3_USE_SSL: bool = Field(default=False, description="Use SSL for S3 connections")
+    S3_SIGNED_URL_TTL: int = Field(default=3600, description="Signed URL TTL in seconds")
+    S3_MAX_FILE_SIZE: int = Field(default=10485760, description="Maximum file size in bytes (10MB)")
+    S3_ALLOWED_MIME_TYPES: str = Field(
+        default="image/jpeg,image/png,image/webp,image/avif,image/gif",
+        description="Allowed MIME types (comma-separated)"
+    )
+    
+    # Media Processing
+    MEDIA_CDN_BASE_URL: Optional[str] = Field(default=None, description="CDN base URL for media delivery")
+    MEDIA_PROCESSING_ENABLED: bool = Field(default=True, description="Enable image processing for variants")
+    MEDIA_VARIANT_SIZES: str = Field(
+        default="thumb:150x150,sm:300x300,md:600x600,lg:1200x1200",
+        description="Image variant sizes (format: name:WxH,name:WxH)"
+    )
+    MEDIA_STRIP_EXIF: bool = Field(default=True, description="Strip EXIF data from images")
+    MEDIA_COMPRESS_QUALITY: int = Field(default=85, description="Image compression quality (1-100)")
+    MEDIA_DOMINANT_COLOR: bool = Field(default=True, description="Extract dominant color from images")
     
     @property
     def cors_origins_list(self) -> List[str]:
@@ -143,6 +168,33 @@ class Settings(BaseSettings):
             "samesite": self.COOKIE_SAME_SITE,
             "domain": self.COOKIE_DOMAIN,
         }
+    
+    @property
+    def allowed_mime_types_list(self) -> List[str]:
+        """Get allowed MIME types as a list"""
+        return [mime.strip() for mime in self.S3_ALLOWED_MIME_TYPES.split(",") if mime.strip()]
+    
+    @property
+    def media_variant_sizes_dict(self) -> Dict[str, Dict[str, int]]:
+        """Get media variant sizes as a dictionary"""
+        variants = {}
+        for variant in self.MEDIA_VARIANT_SIZES.split(","):
+            if ":" in variant:
+                name, size = variant.split(":", 1)
+                if "x" in size:
+                    width, height = size.split("x", 1)
+                    variants[name.strip()] = {
+                        "width": int(width.strip()),
+                        "height": int(height.strip())
+                    }
+        return variants
+    
+    @property
+    def media_base_url(self) -> str:
+        """Get media base URL (CDN or S3 endpoint)"""
+        if self.MEDIA_CDN_BASE_URL:
+            return self.MEDIA_CDN_BASE_URL.rstrip("/")
+        return self.S3_ENDPOINT.rstrip("/")
 
 
 # Global settings instance
