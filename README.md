@@ -21,7 +21,11 @@ This release introduces a comprehensive media storage system featuring:
 - **8 New API Endpoints**: Complete media management capabilities
 
 👉 **[Read Full Release Notes](RELEASE_NOTES_v1.15.1.md)**  
-👉 **[Media API Documentation](backend-fastapi/MEDIA_API_DOCUMENTATION.md)**
+👉 **[Complete API Reference Guide](API_REFERENCE_GUIDE.md)**  
+👉 **[Developer Onboarding Guide](DEVELOPER_ONBOARDING.md)** *(Start Here!)*  
+👉 **[API Quick Reference](API_QUICK_REFERENCE.md)** *(Developer Cheat Sheet)*  
+👉 **[Media API Documentation](backend-fastapi/MEDIA_API_DOCUMENTATION.md)**  
+👉 **[POS API Documentation](backend-fastapi/POS_API_DOCUMENTATION.md)**
 
 ## 🚀 Quick Start
 
