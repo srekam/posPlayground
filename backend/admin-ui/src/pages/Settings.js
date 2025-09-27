@@ -93,7 +93,7 @@ export default function Settings() {
     setSettings(prev => ({
       ...prev,
       features: {
-        ...prev.features,
+        ...(prev.features || {}),
         [feature]: value
       }
     }));
@@ -103,9 +103,9 @@ export default function Settings() {
     setSettings(prev => ({
       ...prev,
       payment_types: {
-        ...prev.payment_types,
+        ...(prev.payment_types || {}),
         [method]: {
-          ...prev.payment_types[method],
+          ...(prev.payment_types?.[method] || {}),
           [field]: value
         }
       }
@@ -116,7 +116,7 @@ export default function Settings() {
     setSettings(prev => ({
       ...prev,
       taxes: {
-        ...prev.taxes,
+        ...(prev.taxes || {}),
         [field]: value
       }
     }));
@@ -181,7 +181,7 @@ export default function Settings() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={settings.features.kiosk}
+                    checked={settings.features?.kiosk || false}
                     onChange={(e) => handleFeatureChange('kiosk', e.target.checked)}
                   />
                 }
@@ -190,7 +190,7 @@ export default function Settings() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={settings.features.gate_binding}
+                    checked={settings.features?.gate_binding || false}
                     onChange={(e) => handleFeatureChange('gate_binding', e.target.checked)}
                   />
                 }
@@ -199,7 +199,7 @@ export default function Settings() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={settings.features.multi_price}
+                    checked={settings.features?.multi_price || false}
                     onChange={(e) => handleFeatureChange('multi_price', e.target.checked)}
                   />
                 }
@@ -208,7 +208,7 @@ export default function Settings() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={settings.features.webhooks}
+                    checked={settings.features?.webhooks || false}
                     onChange={(e) => handleFeatureChange('webhooks', e.target.checked)}
                   />
                 }
@@ -217,7 +217,7 @@ export default function Settings() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={settings.features.offline_sync}
+                    checked={settings.features?.offline_sync || false}
                     onChange={(e) => handleFeatureChange('offline_sync', e.target.checked)}
                   />
                 }
@@ -238,11 +238,11 @@ export default function Settings() {
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel>Plan</InputLabel>
               <Select
-                value={settings.billing.plan}
+                value={settings.billing?.plan || 'basic'}
                 label="Plan"
                 onChange={(e) => setSettings(prev => ({
                   ...prev,
-                  billing: { ...prev.billing, plan: e.target.value }
+                  billing: { ...(prev.billing || {}), plan: e.target.value }
                 }))}
               >
                 <MenuItem value="basic">Basic</MenuItem>
@@ -252,7 +252,7 @@ export default function Settings() {
             </FormControl>
             
             <Typography variant="body2" color="text.secondary">
-              Trial End: {settings.billing.trial_end ? new Date(settings.billing.trial_end).toLocaleDateString() : 'N/A'}
+              Trial End: {settings.billing?.trial_end ? new Date(settings.billing.trial_end).toLocaleDateString() : 'N/A'}
             </Typography>
           </Paper>
         </Grid>
@@ -266,7 +266,7 @@ export default function Settings() {
             <Divider sx={{ mb: 2 }} />
             
             <Grid container spacing={2}>
-              {Object.entries(settings.payment_types).map(([method, config]) => (
+              {Object.entries(settings.payment_types || {}).map(([method, config]) => (
                 <Grid item xs={12} sm={6} md={3} key={method}>
                   <Card>
                     <CardContent>
@@ -324,7 +324,7 @@ export default function Settings() {
             <FormControlLabel
               control={
                 <Switch
-                  checked={settings.taxes.inclusive}
+                  checked={settings.taxes?.inclusive || false}
                   onChange={(e) => handleTaxChange('inclusive', e.target.checked)}
                 />
               }
@@ -335,7 +335,7 @@ export default function Settings() {
               fullWidth
               label="Default Tax Rate (%)"
               type="number"
-              value={settings.taxes.default_rate}
+              value={settings.taxes?.default_rate || 0}
               onChange={(e) => handleTaxChange('default_rate', parseFloat(e.target.value))}
               sx={{ mt: 2 }}
             />

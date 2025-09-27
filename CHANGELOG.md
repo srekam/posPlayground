@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.11] - 2024-12-27
+
+### Added
+- **Items Management System**: Complete CRUD operations for all item types
+- **Image Upload Integration**: Drag & drop image upload with progress tracking
+- **Item Editor Wizard**: 3-step process (Basics, Type-specific fields, Preview)
+- **Type-specific Forms**: Dynamic form fields based on item type (STOCKED_GOOD, PASS_TIME, BUNDLE, etc.)
+- **Image Gallery**: Support for up to 5 images per item with primary image selection
+- **Bulk Operations**: Activate/deactivate multiple items at once
+- **Item Cloning**: Duplicate existing items with new names
+- **Access Zones Management**: CRUD operations for access zones with test endpoints
+
+### Changed
+- **Settings Page**: Fixed runtime errors with null safety improvements
+- **API Response Handling**: Improved error handling and success feedback
+- **Form Validation**: Enhanced inline validation with better error messages
+
+### Fixed
+- **Settings Component**: Resolved "Cannot read properties of undefined (reading 'features')" error
+- **Items CRUD**: Fixed "save ok but not appear in list" issue with in-memory persistence
+- **Access Zones**: Fixed all CRUD operations with proper API integration
+- **Form State Management**: Improved handling of nested object properties
+
+### Technical
+- **Test Endpoints**: Added authentication-bypass endpoints for development
+- **Media API Integration**: Connected frontend image upload with backend Media API
+- **In-memory Storage**: Implemented temporary storage for testing item persistence
+- **Error Handling**: Comprehensive error handling with user-friendly messages
+
 ## [1.15.1] - 2024-12-01
 
 ### Added
