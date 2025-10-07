@@ -32,6 +32,7 @@ import {
   DeviceHub,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const drawerWidth = 240;
 
@@ -118,6 +119,7 @@ export default function Layout() {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {menuItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
           </Typography>
+          <LanguageSwitcher />
           <IconButton
             size="large"
             aria-label="account of current user"

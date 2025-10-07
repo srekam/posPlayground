@@ -5,71 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.15.1] - 2024-12-01
+## [1.15.12] - 2024-12-27
 
 ### Added
-- **Media Storage API**: Complete S3/MinIO-based media storage system
-- **Image Processing**: Automatic variant generation (thumb, sm, md, lg) in WebP format
-- **Presigned Upload URLs**: Secure direct-to-S3 uploads bypassing API server
-- **CDN Integration**: Support for CDN-backed media delivery
-- **Background Processing**: Async image processing with Redis queue support
-- **Multi-tenant Storage**: Tenant-isolated storage paths for security
-- **File Validation**: MIME type validation, size limits, and SHA256 deduplication
-- **Product Image Management**: Ordering, primary image setting, and mapping
-- **Comprehensive Documentation**: Full API documentation with examples
-- **Docker Infrastructure**: MinIO, Redis, and MongoDB setup
-- **Test Suite**: Complete API testing framework
-
-### Technical Implementation
-- **Models**: `MediaAsset`, `ProductImageMapping` with Beanie ODM
-- **Repositories**: Full CRUD operations with soft deletes and processing status
-- **Services**: Storage service, image processing, and background tasks
-- **API Endpoints**: 8 new endpoints for media management
-- **Security**: EXIF stripping, access control, and validation
-- **Performance**: WebP variants, caching headers, and deduplication
-
-### Infrastructure
-- MinIO S3-compatible storage
-- Redis for background processing
-- MongoDB for metadata storage
-- Docker Compose setup with health checks
-- Automated setup script
-
-## [1.15.0] - 2024-11-30
-
-### Added
-- FastAPI backend migration from Express.js
-- MongoDB integration with Beanie ODM
-- Comprehensive POS system APIs
-- Authentication and authorization system
-- Multi-tenant architecture
-- Redis caching and session management
+- Multi-language support (English/Thai) for admin interface
+- i18next integration with React
+- Language switcher component in Layout
+- Browser language detection with localStorage persistence
+- Complete Items module translations (EN/TH)
+- Complete Settings module translations (EN/TH)
+- Translation files for all UI components:
+  - `locales/en/items.json`
+  - `locales/th/items.json`
+  - `locales/en/settings.json`
+  - `locales/th/settings.json`
 
 ### Changed
-- Backend architecture from Node.js to Python FastAPI
-- Database from PostgreSQL to MongoDB
-- API structure and response formats
+- All hardcoded strings replaced with translation keys
+- Enhanced accessibility with localized aria-label attributes
+- Enum values now use dynamic translation mapping
+- Language switching without page reload
 
-## [1.14.x] - Previous versions
+### Fixed
+- Settings page runtime error ("Cannot read properties of undefined")
+- Improved null safety across Settings component
+- Better error handling and user feedback
+
+## [1.15.11] - 2024-12-26
+
+### Added
+- Items Management System with complete CRUD operations
+- Image upload functionality with drag & drop interface
+- Item Editor wizard with 3-step process
+- Support for all item types (STOCKED_GOOD, PASS_TIME, BUNDLE, etc.)
+- Bulk operations for item management
+- Item cloning functionality
+- Integration with Media API backend
+- Test endpoints for development workflow
+
+### Changed
+- Enhanced UX with success/error feedback
+- Improved form validation and error messages
+- Optimistic updates for better responsiveness
+
+### Fixed
+- API response handling improvements
+- Better error handling throughout the application
+
+## [1.15.1] - 2024-12-25
+
+### Added
+- Complete media storage backbone implementation
+- S3/MinIO-based object storage integration
+- Presigned URL upload system
+- Automatic image variant generation (thumbnail, small, medium, large)
+- WebP format conversion for optimal performance
+- CDN integration for fast global delivery
+- Security & validation with MIME type checking
+- Background processing with Redis queue
+- 8 new API endpoints for media management
+
+### Changed
+- Migrated to FastAPI backend architecture
+- Enhanced security with tenant isolation
+- Improved performance with WebP variants
+
+### Fixed
+- File upload security vulnerabilities
+- Image processing performance issues
+
+## [1.15.0] - 2024-12-24
+
+### Added
+- FastAPI backend migration
+- MongoDB integration
+- Modern API architecture
+- Comprehensive API documentation
+
+### Changed
+- Backend framework from Express.js to FastAPI
+- Database integration improvements
+
+### Removed
+- Legacy Express.js backend components
+
+## [1.14.x] - Previous Versions
+
+### Added
 - Flutter mobile application
-- Express.js backend
-- PostgreSQL database
-- Basic POS functionality
+- Basic web interface
+- Express.js backend foundation
 
 ---
 
-## Version Explanation
-
-### Version 1.15.1 Breakdown:
-- **1** = App (Flutter): No changes from previous version
-- **15** = API (Backend): Major backbone implementation - Complete media storage system
-- **1** = Web UI: No changes from previous version
-
-### Major Features in v1.15.1:
-1. **Media Storage Backbone**: Complete implementation of S3-based media storage
-2. **Image Processing Pipeline**: Automated variant generation and optimization
-3. **Security & Validation**: Comprehensive file validation and security measures
-4. **Performance Optimization**: CDN integration and caching strategies
-5. **Developer Experience**: Full documentation, testing, and setup automation
-
-This version establishes the media storage foundation for the POS system, enabling product images, category images, and other media assets to be handled efficiently and securely.
+*For more detailed version information, see [VERSION.md](VERSION.md)*

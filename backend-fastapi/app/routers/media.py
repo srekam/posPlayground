@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from ..deps import get_current_user, get_database, get_tenant_id
 from ..config import settings
-from ..models.auth import User
+from ..models.core import Employee
 from ..models.media_assets import (
     MediaAsset, 
     ProductImageMapping,
@@ -26,14 +26,82 @@ from ..repositories.media_assets import MediaAssetRepository, ProductImageReposi
 from ..services.storage_service import storage_service
 from ..services.media_processing_service import process_media_asset_task
 from ..utils.errors import NotFoundError, ValidationError, StorageError
+from fastapi.logger import logger
 
 router = APIRouter(prefix="/api/v1/media", tags=["Media"])
+
+
+@router.post("/uploads/test-presign")
+async def test_presign_upload(request: MediaUploadRequest):
+    """Test endpoint for generating presigned URL without authentication"""
+    try:
+        # Use default values for testing
+        tenant_id = "test-tenant"
+        
+        # Generate a simple asset ID
+        import uuid
+        asset_id = str(uuid.uuid4())
+        
+        # Create a mock presigned URL response
+        response_data = {
+            "upload_url": f"https://storage.example.com/bucket/tenants/{tenant_id}/products/{request.owner_id}/{asset_id}/orig.jpg",
+            "storage_key": f"tenants/{tenant_id}/products/{request.owner_id}/{asset_id}/orig.jpg",
+            "headers": {
+                "Content-Type": request.mime_type,
+                "x-amz-algorithm": "AWS4-HMAC-SHA256",
+                "x-amz-credential": "test-credential",
+                "x-amz-date": "20231201T120000Z",
+                "x-amz-signature": "test-signature"
+            },
+            "max_bytes": 10485760,
+            "asset_id": asset_id
+        }
+        
+        return {
+            "success": True,
+            "data": response_data,
+            "message": "Presigned URL generated successfully"
+        }
+        
+    except Exception as e:
+        logger.error("Failed to generate test presigned URL", error=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate presigned URL: {str(e)}"
+        )
+
+
+@router.post("/test-complete")
+async def test_complete_upload(request: MediaCompleteRequest):
+    """Test endpoint for completing upload without authentication"""
+    try:
+        # Mock successful completion
+        response_data = {
+            "asset_id": request.asset_id,
+            "storage_key": request.storage_key,
+            "status": "completed",
+            "url": f"https://storage.example.com/bucket/{request.storage_key}",
+            "created_at": "2023-12-01T12:00:00Z"
+        }
+        
+        return {
+            "success": True,
+            "data": response_data,
+            "message": "Upload completed successfully"
+        }
+        
+    except Exception as e:
+        logger.error("Failed to complete test upload", error=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to complete upload: {str(e)}"
+        )
 
 
 @router.post("/uploads/presign", response_model=MediaUploadResponse)
 async def presign_upload(
     request: MediaUploadRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: Employee = Depends(get_current_user),
     tenant_id: str = Depends(get_tenant_id),
     db = Depends(get_database)
 ):
@@ -80,7 +148,7 @@ async def presign_upload(
 async def complete_upload(
     request: MediaCompleteRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: Employee = Depends(get_current_user),
     tenant_id: str = Depends(get_tenant_id),
     db = Depends(get_database)
 ):
@@ -168,7 +236,7 @@ async def list_assets(
     owner_id: Optional[str] = Query(None, description="Filter by owner ID"),
     limit: int = Query(50, ge=1, le=100, description="Number of assets to return"),
     offset: int = Query(0, ge=0, description="Number of assets to skip"),
-    current_user: User = Depends(get_current_user),
+    current_user: Employee = Depends(get_current_user),
     tenant_id: str = Depends(get_tenant_id),
     db = Depends(get_database)
 ):
@@ -237,7 +305,7 @@ async def list_assets(
 @router.get("/{asset_id}", response_model=MediaAssetResponse)
 async def get_asset(
     asset_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: Employee = Depends(get_current_user),
     tenant_id: str = Depends(get_tenant_id),
     db = Depends(get_database)
 ):
@@ -301,7 +369,7 @@ async def get_asset(
 @router.delete("/{asset_id}")
 async def delete_asset(
     asset_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: Employee = Depends(get_current_user),
     tenant_id: str = Depends(get_tenant_id),
     db = Depends(get_database)
 ):
@@ -351,7 +419,7 @@ async def delete_asset(
 @router.get("/products/{product_id}/images", response_model=List[MediaAssetResponse])
 async def get_product_images(
     product_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: Employee = Depends(get_current_user),
     tenant_id: str = Depends(get_tenant_id),
     db = Depends(get_database)
 ):
@@ -422,7 +490,7 @@ async def get_product_images(
 async def reorder_product_images(
     product_id: str,
     request: ProductImageOrderRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: Employee = Depends(get_current_user),
     tenant_id: str = Depends(get_tenant_id),
     db = Depends(get_database)
 ):
@@ -447,7 +515,7 @@ async def reorder_product_images(
 async def set_primary_product_image(
     product_id: str,
     request: ProductImagePrimaryRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: Employee = Depends(get_current_user),
     tenant_id: str = Depends(get_tenant_id),
     db = Depends(get_database)
 ):

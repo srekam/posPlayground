@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Paper,
@@ -22,102 +23,144 @@ import {
   CardContent,
   Tab,
   Tabs,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Switch,
+  FormControlLabel,
+  IconButton,
+  Tooltip,
+  Badge,
+  Stack,
+  Pagination,
+  Checkbox,
 } from '@mui/material';
-import { Add, Edit, Delete, Inventory, AttachMoney, LocationOn } from '@mui/icons-material';
+import {
+  Add,
+  Edit,
+  Delete,
+  Inventory,
+  AttachMoney,
+  LocationOn,
+  Search,
+  FilterList,
+  MoreVert,
+  Visibility,
+  ContentCopy,
+  Warning,
+  CheckCircle,
+  Error,
+  Receipt,
+  ShoppingCart,
+  Timer,
+  Upgrade,
+  LocalShipping,
+  Category,
+  Image,
+  Assessment,
+} from '@mui/icons-material';
+import apiClient, { API_ENDPOINTS } from '../config/api';
+import ItemEditor from '../components/ItemEditor';
+import InventoryManager from '../components/InventoryManager';
+import BundleManager from '../components/BundleManager';
+import AccessZonesManager from '../components/AccessZonesManager';
+import QuickActions from '../components/QuickActions';
+
+// Item type configurations - will be updated to use translations
+const ITEM_TYPES = {
+  STOCKED_GOOD: { labelKey: 'badges.stockedGood', icon: <LocalShipping />, color: 'primary' },
+  NON_STOCKED_SERVICE: { labelKey: 'badges.service', icon: <Receipt />, color: 'secondary' },
+  PASS_TIME: { labelKey: 'badges.passTime', icon: <Timer />, color: 'success' },
+  RIDE_CREDIT_BUNDLE: { labelKey: 'badges.rideBundle', icon: <ShoppingCart />, color: 'info' },
+  SINGLE_RIDE: { labelKey: 'badges.singleRide', icon: <ShoppingCart />, color: 'info' },
+  BUNDLE: { labelKey: 'badges.bundle', icon: <Inventory />, color: 'warning' },
+  UPGRADE: { labelKey: 'badges.upgrade', icon: <Upgrade />, color: 'error' },
+  FEE: { labelKey: 'badges.fee', icon: <AttachMoney />, color: 'default' },
+  DISCOUNT: { labelKey: 'badges.discount', icon: <AttachMoney />, color: 'default' },
+};
 
 export default function Items() {
+  const { t } = useTranslation('items');
+  
+  // State management
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [packages, setPackages] = useState([]);
-  const [pricingRules, setPricingRules] = useState([]);
-  const [accessZones, setAccessZones] = useState([]);
+  const [success, setSuccess] = useState('');
+  const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState('add');
   const [selectedItem, setSelectedItem] = useState(null);
+  
+  // Filters and pagination
+  const [filters, setFilters] = useState({
+    type: '',
+    category_id: '',
+    active: '',
+    q: '',
+  });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+  });
+  
+  // Bulk actions
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [bulkAction, setBulkAction] = useState('');
 
-  // Mock data for demonstration
+  // Load data on component mount
   useEffect(() => {
-    loadMockData();
-  }, []);
+    loadItems();
+    loadCategories();
+  }, [filters, pagination.page]);
 
-  const loadMockData = () => {
-    // Mock packages data
-    const mockPackages = [
-      {
-        id: '1',
-        name: 'Day Pass',
-        description: 'Full day access to all attractions',
-        price: 25.99,
-        duration: 8,
-        status: 'active',
-        category: 'Day Passes'
-      },
-      {
-        id: '2',
-        name: 'Weekend Pass',
-        description: 'Access for Saturday and Sunday',
-        price: 45.99,
-        duration: 16,
-        status: 'active',
-        category: 'Weekend Passes'
-      },
-      {
-        id: '3',
-        name: 'Season Pass',
-        description: 'Unlimited access for 3 months',
-        price: 199.99,
-        duration: 2160,
-        status: 'active',
-        category: 'Season Passes'
+  const loadItems = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+      params.append('page', pagination.page);
+      params.append('limit', pagination.limit);
+
+      const response = await apiClient.get(`${API_ENDPOINTS.ITEMS.LIST}?${params}`);
+      
+      // Handle our API response structure
+      if (response.data && response.data.data) {
+        setItems(response.data.data || []);
+        setPagination(prev => ({
+          ...prev,
+          total: response.data.data.length || 0, // For now, use array length
+        }));
+      } else {
+        setItems([]);
       }
-    ];
+    } catch (err) {
+      console.error('Error loading items:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to load items');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Mock pricing rules data
-    const mockPricingRules = [
-      {
-        id: '1',
-        name: 'Student Discount',
-        description: '20% off for students',
-        discount_type: 'percentage',
-        discount_value: 20,
-        conditions: 'Student ID required',
-        status: 'active'
-      },
-      {
-        id: '2',
-        name: 'Family Package',
-        description: 'Buy 3 get 1 free',
-        discount_type: 'free_item',
-        discount_value: 1,
-        conditions: 'Minimum 4 people',
-        status: 'active'
+  const loadCategories = async () => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.LIST);
+      if (response.data && response.data.data) {
+        setCategories(response.data.data || []);
+      } else {
+        setCategories([]);
       }
-    ];
-
-    // Mock access zones data
-    const mockAccessZones = [
-      {
-        id: '1',
-        name: 'Main Playground',
-        description: 'Primary play area with slides and swings',
-        capacity: 100,
-        status: 'active',
-        location: 'Zone A'
-      },
-      {
-        id: '2',
-        name: 'Water Play Area',
-        description: 'Splash pads and water features',
-        capacity: 50,
-        status: 'active',
-        location: 'Zone B'
-      }
-    ];
-
-    setPackages(mockPackages);
-    setPricingRules(mockPricingRules);
-    setAccessZones(mockAccessZones);
+    } catch (err) {
+      console.error('Error loading categories:', err);
+      setCategories([]); // Set empty array on error
+    }
   };
 
   const handleTabChange = (event, newValue) => {
@@ -136,10 +179,112 @@ export default function Items() {
     setDialogOpen(true);
   };
 
-  const handleDelete = (item) => {
-    if (window.confirm(`Are you sure you want to delete ${item.name}?`)) {
-      // Mock delete - in real app, this would call API
-      console.log('Deleting item:', item);
+  const handleClone = async (item) => {
+    try {
+      const clonedItem = {
+        ...item,
+        name: `${item.name} (Copy)`,
+        item_id: undefined, // Will be generated by backend
+      };
+      delete clonedItem.created_at;
+      delete clonedItem.updated_at;
+      
+      const response = await apiClient.post(API_ENDPOINTS.ITEMS.CREATE, clonedItem);
+      if (response.data && response.data.data) {
+        setError('');
+        setSuccess('Item cloned successfully!');
+        loadItems();
+        
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (err) {
+      console.error('Error cloning item:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to clone item');
+    }
+  };
+
+  const handleDelete = async (item) => {
+    if (window.confirm(`Are you sure you want to delete "${item.name}"?`)) {
+      try {
+        await apiClient.delete(API_ENDPOINTS.ITEMS.DELETE(item.item_id));
+        setError('');
+        setSuccess('Item deleted successfully!');
+        loadItems();
+        
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000);
+      } catch (err) {
+        console.error('Error deleting item:', err);
+        setError(err.response?.data?.message || err.message || 'Failed to delete item');
+      }
+    }
+  };
+
+  const handleStatusToggle = async (item) => {
+    try {
+      await apiClient.patch(API_ENDPOINTS.ITEMS.UPDATE_STATUS(item.item_id), {
+        active: !item.active
+      });
+      setError('');
+      setSuccess('Item status updated successfully!');
+      loadItems();
+      
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Error updating item status:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to update item status');
+    }
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedItems.length === 0) return;
+
+    try {
+      const promises = selectedItems.map(itemId => {
+        const item = items.find(i => i.item_id === itemId);
+        if (bulkAction === 'activate') {
+          return apiClient.patch(API_ENDPOINTS.ITEMS.UPDATE_STATUS(itemId), { active: true });
+        } else if (bulkAction === 'deactivate') {
+          return apiClient.patch(API_ENDPOINTS.ITEMS.UPDATE_STATUS(itemId), { active: false });
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(promises);
+      setError('');
+      setSuccess(`Bulk action completed for ${selectedItems.length} item(s)!`);
+      loadItems();
+      setSelectedItems([]);
+      setBulkAction('');
+      
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Error performing bulk action:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to perform bulk action');
+    }
+  };
+
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      setSelectedItems(items.map(item => item.item_id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
+  const handleSelectItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems(prev => [...prev, itemId]);
+    } else {
+      setSelectedItems(prev => prev.filter(id => id !== itemId));
     }
   };
 
@@ -148,180 +293,307 @@ export default function Items() {
     setSelectedItem(null);
   };
 
-  const renderPackagesTable = () => (
+  const handleDialogSave = () => {
+    loadItems();
+    handleDialogClose();
+  };
+
+  const formatPrice = (satang) => {
+    return `฿${(satang / 100).toFixed(2)}`;
+  };
+
+  const getItemTypeInfo = (type) => {
+    const typeConfig = ITEM_TYPES[type];
+    if (typeConfig) {
+      return {
+        ...typeConfig,
+        label: t(typeConfig.labelKey)
+      };
+    }
+    return { label: type, icon: <Category />, color: 'default' };
+  };
+
+  const renderFilters = () => (
+    <Paper sx={{ p: 2, mb: 2 }}>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={12} md={3}>
+          <TextField
+            fullWidth
+            label={t('filters.searchPlaceholder')}
+            value={filters.q}
+            onChange={(e) => handleFilterChange('q', e.target.value)}
+            InputProps={{
+              startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
+          />
+        </Grid>
+        <Grid item xs={12} md={2}>
+          <FormControl fullWidth>
+            <InputLabel>Type</InputLabel>
+            <Select
+              value={filters.type}
+              onChange={(e) => handleFilterChange('type', e.target.value)}
+              label={t('filters.type')}
+            >
+              <MenuItem value="">{t('filters.allTypes')}</MenuItem>
+              {Object.entries(ITEM_TYPES).map(([key, config]) => (
+                <MenuItem key={key} value={key}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    {config.icon}
+                    <span>{t(config.labelKey)}</span>
+                  </Stack>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={2}>
+          <FormControl fullWidth>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={filters.category_id}
+              onChange={(e) => handleFilterChange('category_id', e.target.value)}
+              label={t('filters.category')}
+            >
+              <MenuItem value="">{t('filters.allCategories')}</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category.category_id} value={category.category_id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={2}>
+          <FormControl fullWidth>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={filters.active}
+              onChange={(e) => handleFilterChange('active', e.target.value)}
+              label={t('filters.status')}
+            >
+              <MenuItem value="">{t('filters.allStatus')}</MenuItem>
+              <MenuItem value="true">{t('actions.active')}</MenuItem>
+              <MenuItem value="false">{t('actions.inactive')}</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              startIcon={<FilterList />}
+              onClick={() => setFilters({ type: '', category_id: '', active: '', q: '' })}
+            >
+              {t('filters.clear')}
+            </Button>
+          </Stack>
+        </Grid>
+      </Grid>
+    </Paper>
+  );
+
+  const renderBulkActions = () => {
+    if (selectedItems.length === 0) return null;
+
+    return (
+      <Paper sx={{ p: 2, mb: 2, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item>
+            <Typography variant="body2">
+              {selectedItems.length} item(s) selected
+            </Typography>
+          </Grid>
+          <Grid item>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Bulk Action</InputLabel>
+              <Select
+                value={bulkAction}
+                onChange={(e) => setBulkAction(e.target.value)}
+                label="Bulk Action"
+              >
+                <MenuItem value="activate">Activate</MenuItem>
+                <MenuItem value="deactivate">Deactivate</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              onClick={handleBulkAction}
+              disabled={!bulkAction}
+              size="small"
+            >
+              Apply
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="outlined"
+              onClick={() => setSelectedItems([])}
+              size="small"
+            >
+              {t('filters.clear')}
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+    );
+  };
+
+  const renderItemsTable = () => (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Description</TableCell>
-            <TableCell>Price</TableCell>
-            <TableCell>Duration (hrs)</TableCell>
-            <TableCell>Category</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell padding="checkbox">
+              <Checkbox
+                checked={selectedItems.length === items.length && items.length > 0}
+                indeterminate={selectedItems.length > 0 && selectedItems.length < items.length}
+                onChange={handleSelectAll}
+              />
+            </TableCell>
+            <TableCell>{t('columns.name')}</TableCell>
+            <TableCell>{t('columns.type')}</TableCell>
+            <TableCell>{t('columns.price')}</TableCell>
+            <TableCell>{t('columns.category')}</TableCell>
+            <TableCell>{t('columns.status')}</TableCell>
+            <TableCell>{t('columns.actions')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {packages.map((pkg) => (
-            <TableRow key={pkg.id}>
-              <TableCell>{pkg.name}</TableCell>
-              <TableCell>{pkg.description}</TableCell>
-              <TableCell>${pkg.price}</TableCell>
-              <TableCell>{pkg.duration}</TableCell>
-              <TableCell>{pkg.category}</TableCell>
-              <TableCell>
-                <Chip 
-                  label={pkg.status} 
-                  color={pkg.status === 'active' ? 'success' : 'default'}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>
-                <Button
-                  size="small"
-                  startIcon={<Edit />}
-                  onClick={() => handleEdit(pkg)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<Delete />}
-                  color="error"
-                  onClick={() => handleDelete(pkg)}
-                >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+          {items.map((item) => {
+            const typeInfo = getItemTypeInfo(item.type);
+            return (
+              <TableRow key={item.item_id} hover>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selectedItems.includes(item.item_id)}
+                    onChange={(e) => handleSelectItem(item.item_id, e.target.checked)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    {item.images && item.images.length > 0 && (
+                      <Image sx={{ fontSize: 20, color: 'text.secondary' }} />
+                    )}
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium">
+                        {item.name}
+                      </Typography>
+                      {item.description && (
+                        <Typography variant="caption" color="text.secondary">
+                          {item.description.length > 50 
+                            ? `${item.description.substring(0, 50)}...` 
+                            : item.description}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Stack>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    icon={typeInfo.icon}
+                    label={typeInfo.label}
+                    color={typeInfo.color}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" fontWeight="medium">
+                    {formatPrice(item.price_satang)}
+                  </Typography>
+                  {item.type === 'STOCKED_GOOD' && item.stocked_good?.cost_satang && (
+                    <Typography variant="caption" color="text.secondary">
+                      Cost: {formatPrice(item.stocked_good.cost_satang)}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {item.category_id ? (
+                    categories.find(c => c.category_id === item.category_id)?.name || item.category_id
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">No category</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={item.active}
+                        onChange={() => handleStatusToggle(item)}
+                        size="small"
+                      />
+                    }
+                    label={item.active ? t('actions.active') : t('actions.inactive')}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Stack direction="row" spacing={1}>
+                    <Tooltip title={t('actions.view')}>
+                      <IconButton size="small" onClick={() => handleEdit(item)}>
+                        <Visibility />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('actions.edit')}>
+                      <IconButton size="small" onClick={() => handleEdit(item)}>
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('actions.clone')}>
+                      <IconButton size="small" onClick={() => handleClone(item)}>
+                        <ContentCopy />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('actions.delete')}>
+                      <IconButton size="small" color="error" onClick={() => handleDelete(item)}>
+                        <Delete />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>
   );
 
-  const renderPricingRulesTable = () => (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Description</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Value</TableCell>
-            <TableCell>Conditions</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {pricingRules.map((rule) => (
-            <TableRow key={rule.id}>
-              <TableCell>{rule.name}</TableCell>
-              <TableCell>{rule.description}</TableCell>
-              <TableCell>{rule.discount_type}</TableCell>
-              <TableCell>
-                {rule.discount_type === 'percentage' 
-                  ? `${rule.discount_value}%` 
-                  : `${rule.discount_value} item(s)`
-                }
-              </TableCell>
-              <TableCell>{rule.conditions}</TableCell>
-              <TableCell>
-                <Chip 
-                  label={rule.status} 
-                  color={rule.status === 'active' ? 'success' : 'default'}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>
-                <Button
-                  size="small"
-                  startIcon={<Edit />}
-                  onClick={() => handleEdit(rule)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<Delete />}
-                  color="error"
-                  onClick={() => handleDelete(rule)}
-                >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+  const renderPagination = () => {
+    const totalPages = Math.ceil(pagination.total / pagination.limit);
+    if (totalPages <= 1) return null;
 
-  const renderAccessZonesTable = () => (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Description</TableCell>
-            <TableCell>Capacity</TableCell>
-            <TableCell>Location</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {accessZones.map((zone) => (
-            <TableRow key={zone.id}>
-              <TableCell>{zone.name}</TableCell>
-              <TableCell>{zone.description}</TableCell>
-              <TableCell>{zone.capacity}</TableCell>
-              <TableCell>{zone.location}</TableCell>
-              <TableCell>
-                <Chip 
-                  label={zone.status} 
-                  color={zone.status === 'active' ? 'success' : 'default'}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>
-                <Button
-                  size="small"
-                  startIcon={<Edit />}
-                  onClick={() => handleEdit(zone)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<Delete />}
-                  color="error"
-                  onClick={() => handleDelete(zone)}
-                >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+        <Pagination
+          count={totalPages}
+          page={pagination.page}
+          onChange={(event, page) => setPagination(prev => ({ ...prev, page }))}
+          color="primary"
+        />
+      </Box>
+    );
+  };
 
   const getTabIcon = (index) => {
-    const icons = [<Inventory />, <AttachMoney />, <LocationOn />];
+    const icons = [<Inventory />, <Assessment />, <ShoppingCart />, <LocationOn />, <Receipt />];
     return icons[index] || <Inventory />;
   };
 
   const getTabLabel = (index) => {
-    const labels = ['Packages', 'Pricing Rules', 'Access Zones'];
+    const labels = [
+      t('tabs.items'), 
+      t('tabs.inventory'), 
+      t('tabs.bundles'), 
+      t('tabs.accessZones'), 
+      t('tabs.quickActions')
+    ];
     return labels[index] || 'Unknown';
   };
 
   const getTabCount = (index) => {
-    const counts = [packages.length, pricingRules.length, accessZones.length];
+    const counts = [items.length, 0, 0, 0, 0]; // TODO: Get actual counts
     return counts[index] || 0;
   };
 
@@ -329,20 +601,28 @@ export default function Items() {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Items Management
+          {t('title')}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAdd}
-        >
-          Add {getTabLabel(activeTab).slice(0, -1)}
-        </Button>
+        {activeTab === 0 && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleAdd}
+          >
+            {t('actions.addItem')}
+          </Button>
+        )}
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
+        </Alert>
+      )}
+
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+          {success}
         </Alert>
       )}
 
@@ -363,6 +643,16 @@ export default function Items() {
             label={`${getTabLabel(2)} (${getTabCount(2)})`}
             iconPosition="start"
           />
+          <Tab 
+            icon={getTabIcon(3)} 
+            label={`${getTabLabel(3)} (${getTabCount(3)})`}
+            iconPosition="start"
+          />
+          <Tab 
+            icon={getTabIcon(4)} 
+            label={`${getTabLabel(4)} (${getTabCount(4)})`}
+            iconPosition="start"
+          />
         </Tabs>
       </Paper>
 
@@ -374,35 +664,32 @@ export default function Items() {
             </Box>
           ) : (
             <>
-              {activeTab === 0 && renderPackagesTable()}
-              {activeTab === 1 && renderPricingRulesTable()}
-              {activeTab === 2 && renderAccessZonesTable()}
+              {activeTab === 0 && (
+                <>
+                  {renderFilters()}
+                  {renderBulkActions()}
+                  {renderItemsTable()}
+                  {renderPagination()}
+                </>
+              )}
+              {activeTab === 1 && <InventoryManager />}
+              {activeTab === 2 && <BundleManager />}
+              {activeTab === 3 && <AccessZonesManager />}
+              {activeTab === 4 && <QuickActions />}
             </>
           )}
         </Grid>
       </Grid>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {dialogMode === 'add' ? 'Add' : 'Edit'} {getTabLabel(activeTab).slice(0, -1)}
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
-            {dialogMode === 'add' 
-              ? `Add a new ${getTabLabel(activeTab).slice(0, -1).toLowerCase()}` 
-              : `Edit ${selectedItem?.name || 'item'}`
-            }
-          </Typography>
-          {/* Form fields would go here */}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button variant="contained">
-            {dialogMode === 'add' ? 'Add' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Item Editor Dialog */}
+      <ItemEditor
+        open={dialogOpen}
+        mode={dialogMode}
+        item={selectedItem}
+        categories={categories}
+        onClose={handleDialogClose}
+        onSave={handleDialogSave}
+      />
     </Box>
   );
 }

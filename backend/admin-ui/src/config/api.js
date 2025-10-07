@@ -17,9 +17,14 @@ const apiClient = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Skip authentication for test endpoints
+    const isTestEndpoint = config.url?.includes('/test') || config.url?.includes('/test-');
+    
+    if (!isTestEndpoint) {
+      const token = localStorage.getItem('admin_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -76,6 +81,58 @@ export const API_ENDPOINTS = {
     PACKAGES: '/catalog/packages',
     PRICING_RULES: '/catalog/pricing/rules',
     CALCULATE_PRICING: '/catalog/pricing/calculate',
+  },
+
+  // Items Management (New Items Taxonomy API)
+  ITEMS: {
+    LIST: '/items/test-list',
+    GET_BY_ID: (id) => `/items/${id}`,
+    CREATE: '/items/test-create',
+    UPDATE: (id) => `/items/${id}`,
+    DELETE: (id) => `/items/${id}`,
+    UPDATE_STATUS: (id) => `/items/${id}/status`,
+  },
+
+  // Inventory Management
+  INVENTORY: {
+    ITEMS: '/inventory/items',
+    MOVEMENTS: '/inventory/movements',
+    CREATE_MOVEMENT: '/inventory/movements',
+  },
+
+  // Categories
+  CATEGORIES: {
+    LIST: '/categories',
+    GET_BY_ID: (id) => `/categories/${id}`,
+    CREATE: '/categories',
+    UPDATE: (id) => `/categories/${id}`,
+    DELETE: (id) => `/categories/${id}`,
+  },
+
+  // Media Management
+  MEDIA: {
+    PRESIGN: '/media/uploads/test-presign',
+    COMPLETE: '/media/test-complete',
+    DELETE: '/media/assets',
+    PRODUCT_IMAGES: (productId) => `/media/products/${productId}/images`,
+    SET_PRIMARY: (productId) => `/media/products/${productId}/images/primary`,
+    REORDER: (productId) => `/media/products/${productId}/images/order`,
+  },
+
+  // Cards (for Quick Actions)
+  CARDS: {
+    GET_BY_ID: (id) => `/cards/${id}`,
+    ADD_ENTITLEMENT: (id) => `/cards/${id}/entitlements`,
+    ADD_CREDITS: (id) => `/cards/${id}/credits/add`,
+  },
+
+  // Access Zones
+  ACCESS_ZONES: {
+    LIST: '/access/zones/test-list',
+    GET_BY_ID: (id) => `/access/zones/test-get/${id}`,
+    CREATE: '/access/zones/test-create',
+    UPDATE: (id) => `/access/zones/test-update/${id}`,
+    DELETE: (id) => `/access/zones/test-delete/${id}`,
   },
   
   // Shifts

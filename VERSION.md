@@ -1,6 +1,6 @@
 # Version Information
 
-## Current Version: 1.15.1
+## Current Version: 1.15.12
 
 ### Version Components
 
@@ -8,7 +8,142 @@
 |-----------|---------|--------|-------------|
 | **App** | 1 | No Change | Flutter mobile application remains stable |
 | **API** | 15 | Major Update | Complete media storage backbone implementation |
-| **Web UI** | 1 | No Change | Web interface remains unchanged |
+| **Web UI** | 2 | Major Update | Multi-language support (EN/TH) implementation |
+
+### Version 1.15.12 - Multi-Language Support (EN/TH)
+
+This version introduces comprehensive multi-language support for the admin interface with English and Thai translations.
+
+#### 🌐 What's New in Web UI v12
+
+**Internationalization (i18n) System:**
+- Complete i18next integration with React
+- Language switcher component in Layout
+- Browser language detection with localStorage persistence
+- Namespace-based translation organization
+
+**Items Module Translations:**
+- Complete English/Thai translation coverage
+- All UI strings, labels, and messages translated
+- Item type badges and status indicators
+- Form validation messages
+- Success/error feedback messages
+
+**Settings Module Translations:**
+- Complete Settings page internationalization
+- Feature toggle labels and descriptions
+- Payment method and fee type translations
+- Tax settings and receipt configuration
+- Accessibility attributes (aria-label, placeholders)
+
+**Translation Infrastructure:**
+- Structured locale files (en/items.json, th/items.json, en/settings.json, th/settings.json)
+- Enum value mapping for dynamic translations
+- ICU message format support
+- Extensible namespace architecture
+
+**User Experience:**
+- Seamless language switching without page reload
+- Consistent terminology across all modules
+- Cultural context considered in translations
+- Screen reader compatibility with localized labels
+
+#### 🏗️ Architecture Impact
+
+This implementation establishes the internationalization foundation that enables:
+- Multi-market deployment support
+- Localized user experiences
+- Easy addition of new languages
+- Consistent translation management
+- Accessibility compliance across languages
+
+#### 📊 Technical Specifications
+
+**Frontend Components:**
+- `i18n.js` - i18next configuration and initialization
+- `LanguageSwitcher.js` - Language toggle component
+- `Items.js` - Fully internationalized items management
+- `Settings.js` - Fully internationalized settings page
+
+**Translation Files:**
+- `locales/en/items.json` - English items translations
+- `locales/th/items.json` - Thai items translations
+- `locales/en/settings.json` - English settings translations
+- `locales/th/settings.json` - Thai settings translations
+
+**Key Features:**
+- Dynamic language switching
+- Namespace-based organization
+- Enum value translation mapping
+- Accessibility attribute localization
+- Browser language detection
+- Persistent language preference
+
+### Version 1.15.11 - Items Management with Image Upload
+
+This version introduces comprehensive Items management functionality with integrated image upload capabilities.
+
+#### 🎯 What's New in Web UI v11
+
+**Items Management System:**
+- Complete CRUD operations for all item types (STOCKED_GOOD, PASS_TIME, BUNDLE, etc.)
+- Type-specific form fields with dynamic validation
+- Item Editor wizard with 3-step process (Basics, Type-specific, Preview)
+- Bulk operations (activate/deactivate multiple items)
+- Item cloning functionality
+
+**Image Upload Integration:**
+- Drag & drop image upload interface
+- Support for up to 5 images per item
+- Primary image selection
+- Real-time upload progress tracking
+- Image preview in item editor and lists
+- File validation (type, size limits)
+- Integration with Media API backend
+
+**Enhanced UX Features:**
+- Success/error feedback with auto-hide
+- Optimistic updates for better responsiveness
+- Form validation with inline error messages
+- Loading states and progress indicators
+- Responsive design for mobile and desktop
+
+**Technical Improvements:**
+- Fixed Settings page runtime errors (null safety)
+- Improved API response handling
+- Better error handling and user feedback
+- Test endpoints for development without authentication
+
+#### 🏗️ Architecture Impact
+
+This implementation establishes the Items management foundation that supports:
+- Complete product catalog management
+- Multi-type item support with type-specific fields
+- Image galleries for enhanced product presentation
+- Inventory tracking integration
+- Bundle management with Bill of Materials (BOM)
+- Access zone mapping for passes
+
+#### 📊 Technical Specifications
+
+**Frontend Components:**
+- `ItemEditor.js` - Comprehensive item creation/editing wizard
+- `ImageUpload.js` - Drag & drop image upload component
+- `Items.js` - Main items management page with tabs
+- `AccessZonesManager.js` - Access zones CRUD operations
+
+**Backend Integration:**
+- Items Taxonomy API with type-specific validation
+- Media API integration for image uploads
+- Test endpoints for development workflow
+- In-memory storage for testing persistence
+
+**Key Features:**
+- Type-specific form fields (stocked goods, passes, bundles, etc.)
+- Image upload with presigned URL flow
+- Real-time validation and feedback
+- Bulk operations support
+- Mobile-responsive design
 
 ### Version 1.15.1 - Media Storage Foundation
 
@@ -117,7 +252,17 @@ With the media backbone in place, future versions can focus on:
 
 ## Version History
 
-### 1.15.1 (Current)
+### 1.15.12 (Current)
+- **App**: No changes
+- **API**: No changes
+- **Web UI**: Multi-language support (EN/TH) implementation
+
+### 1.15.11
+- **App**: No changes
+- **API**: Items Taxonomy API with test endpoints
+- **Web UI**: Items management with image upload functionality
+
+### 1.15.1
 - **App**: No changes
 - **API**: Media storage backbone implementation
 - **Web UI**: No changes
