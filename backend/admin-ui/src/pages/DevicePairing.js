@@ -12,7 +12,6 @@ import {
   MenuItem,
   Card,
   CardContent,
-  CardActions,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -23,17 +22,12 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  Snackbar,
 } from '@mui/material';
 import {
   Add,
-  QrCode,
-  Link,
   ContentCopy,
   Download,
   Refresh,
-  Visibility,
-  VisibilityOff,
   CheckCircle,
   Error,
   Warning,
@@ -49,17 +43,50 @@ export default function DevicePairing() {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState('');
   const [deviceType, setDeviceType] = useState('POS');
-  const [ttlMinutes, setTtlMinutes] = useState(15);
+  const [ttlMinutes, setTtlMinutes] = useState(1); // Changed to 1 minute (60 seconds)
   const [generatedPairing, setGeneratedPairing] = useState(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
-  const [showManualKey, setShowManualKey] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [pairingHistory, setPairingHistory] = useState([]);
+  const [timeRemaining, setTimeRemaining] = useState(60); // 60 seconds countdown
+  const [pairingSuccess, setPairingSuccess] = useState(false);
+  const [recentDevices, setRecentDevices] = useState([]);
 
   useEffect(() => {
     fetchStores();
     fetchPairingHistory();
-  }, []);
+    fetchRecentDevices();
+    
+    // Check for pairing success every 2 seconds when dialog is open
+    const interval = setInterval(() => {
+      if (openDialog && generatedPairing) {
+        checkPairingSuccess();
+      }
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [openDialog, generatedPairing, checkPairingSuccess]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    let interval = null;
+    if (openDialog && generatedPairing && timeRemaining > 0) {
+      interval = setInterval(() => {
+        setTimeRemaining(timeRemaining => {
+          if (timeRemaining <= 1) {
+            setOpenDialog(false);
+            setGeneratedPairing(null);
+            setTimeRemaining(60);
+            return 0;
+          }
+          return timeRemaining - 1;
+        });
+      }, 1000);
+    } else if (timeRemaining === 0) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [openDialog, generatedPairing, timeRemaining]);
 
   const fetchStores = async () => {
     try {
@@ -85,6 +112,49 @@ export default function DevicePairing() {
     }
   };
 
+  const fetchRecentDevices = async () => {
+    try {
+      const response = await apiClient.get('/api/v1/devices?limit=5');
+      if (response.data.success) {
+        setRecentDevices(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching recent devices:', error);
+    }
+  };
+
+  const checkPairingSuccess = async () => {
+    try {
+      const response = await apiClient.get('/api/v1/devices?limit=10');
+      if (response.data.success) {
+        const devices = response.data.data || [];
+        const newDevices = devices.filter(device => {
+          const createdTime = new Date(device.created_at);
+          const now = new Date();
+          const timeDiff = now - createdTime;
+          return timeDiff < 120000; // Created within last 2 minutes
+        });
+        
+        if (newDevices.length > recentDevices.length) {
+          setPairingSuccess(true);
+          setSuccess('🎉 Device paired successfully! New device added to your device list.');
+          fetchRecentDevices(); // Refresh the device list
+          
+          // Close dialog IMMEDIATELY upon success
+          setOpenDialog(false);
+          setPairingSuccess(false);
+          
+          // Clear success message after 5 seconds
+          setTimeout(() => {
+            setSuccess('');
+          }, 5000);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking pairing success:', error);
+    }
+  };
+
   const generatePairing = async () => {
     if (!selectedStore) {
       setError('Please select a store');
@@ -103,6 +173,8 @@ export default function DevicePairing() {
       });
 
       const pairing = response.data;
+      console.log('Generated pairing response:', pairing);
+      console.log('Manual key generated:', pairing.manual_key);
       setGeneratedPairing(pairing);
 
       // Generate QR code
@@ -121,6 +193,7 @@ export default function DevicePairing() {
       }
 
       setSuccess('Pairing code generated successfully!');
+      setTimeRemaining(60); // Reset countdown to 60 seconds
       setOpenDialog(true);
     } catch (err) {
       console.error('Failed to generate pairing:', err);
@@ -258,9 +331,9 @@ export default function DevicePairing() {
                   label="Time to Live (minutes)"
                   type="number"
                   value={ttlMinutes}
-                  onChange={(e) => setTtlMinutes(parseInt(e.target.value) || 15)}
-                  inputProps={{ min: 5, max: 60 }}
-                  helperText="How long the pairing code will be valid (5-60 minutes)"
+                  onChange={(e) => setTtlMinutes(parseInt(e.target.value) || 1)}
+                  inputProps={{ min: 1, max: 5 }}
+                  helperText="Quick pairing - code expires in 60 seconds for fast pairing"
                 />
               </Grid>
             </Grid>
@@ -364,10 +437,28 @@ export default function DevicePairing() {
         fullWidth
       >
         <DialogTitle>
-          Pairing Code Generated
-          <Typography variant="body2" color="text.secondary">
-            Expires in {ttlMinutes} minutes
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="h6">Pairing Code Generated</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Quick pairing - expires in 60 seconds
+              </Typography>
+            </Box>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              px: 2, 
+              py: 1, 
+              borderRadius: 2,
+              bgcolor: timeRemaining <= 10 ? 'error.main' : timeRemaining <= 30 ? 'warning.main' : 'success.main',
+              color: 'white'
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {timeRemaining}s
+              </Typography>
+            </Box>
+          </Box>
         </DialogTitle>
         <DialogContent>
           {generatedPairing && (
@@ -405,63 +496,80 @@ export default function DevicePairing() {
                 </Card>
               </Grid>
 
-              {/* Deep Link */}
-              <Grid item xs={12} md={6}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Deep Link
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Send this link via email, LINE, or other messaging apps
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      value={generatedPairing.deep_link}
-                      InputProps={{
-                        readOnly: true,
-                        endAdornment: (
-                          <IconButton onClick={() => copyToClipboard(generatedPairing.deep_link, 'Deep link')}>
-                            <ContentCopy />
-                          </IconButton>
-                        ),
-                      }}
-                      variant="outlined"
-                      size="small"
-                    />
-                  </CardContent>
-                </Card>
-              </Grid>
+              {/* Deep Link removed per request */}
 
-              {/* Manual Key */}
+              {/* Manual Key - Big Font Display */}
               <Grid item xs={12}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                      <Typography variant="h6">
-                        Manual Key
-                      </Typography>
-                      <IconButton onClick={() => setShowManualKey(!showManualKey)}>
-                        {showManualKey ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Enter this code manually if QR scanning is not available
+                <Card sx={{ bgcolor: 'primary.50', border: '2px solid', borderColor: 'primary.main' }}>
+                  <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      Manual Pairing Code
                     </Typography>
-                    <TextField
-                      fullWidth
-                      value={showManualKey ? generatedPairing.manual_key : '••••••••••••••••••••'}
-                      InputProps={{
-                        readOnly: true,
-                        endAdornment: (
-                          <IconButton onClick={() => copyToClipboard(generatedPairing.manual_key, 'Manual key')}>
-                            <ContentCopy />
-                          </IconButton>
-                        ),
-                      }}
-                      variant="outlined"
-                      size="small"
-                    />
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      Enter this 5-digit code in your mobile app
+                    </Typography>
+                    
+                    {/* Big 5-digit display */}
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'center', 
+                      gap: 2, 
+                      mb: 3,
+                      flexWrap: 'wrap'
+                    }}>
+                      {generatedPairing.manual_key.split('').map((digit, index) => (
+                        <Box
+                          key={index}
+                          sx={{
+                            width: 60,
+                            height: 80,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: 'white',
+                            border: '3px solid',
+                            borderColor: 'primary.main',
+                            borderRadius: 2,
+                            boxShadow: 2
+                          }}
+                        >
+                          <Typography 
+                            variant="h3" 
+                            sx={{ 
+                              fontWeight: 'bold', 
+                              color: 'primary.main',
+                              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
+                            }}
+                          >
+                            {digit}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+
+                    {/* Action buttons */}
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<ContentCopy />}
+                        onClick={() => copyToClipboard(generatedPairing.manual_key, 'Pairing code')}
+                        size="large"
+                      >
+                        Copy Code
+                      </Button>
+                      <Button
+                        variant="contained"
+                        startIcon={<Refresh />}
+                        onClick={() => {
+                          setOpenDialog(false);
+                          generatePairing();
+                        }}
+                        size="large"
+                        sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+                      >
+                        Generate New Code
+                      </Button>
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
@@ -483,6 +591,73 @@ export default function DevicePairing() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Recent Devices */}
+      <Paper sx={{ mt: 3, p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">
+            Recent Paired Devices
+          </Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Refresh />}
+            onClick={fetchRecentDevices}
+          >
+            Refresh
+          </Button>
+        </Box>
+        <Divider sx={{ mb: 2 }} />
+        
+        {recentDevices.length === 0 ? (
+          <Typography color="text.secondary">
+            No devices paired yet
+          </Typography>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {recentDevices.map((device) => (
+              <Box key={device.device_id} sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                bgcolor: pairingSuccess ? 'success.50' : 'background.paper'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Chip
+                    icon={getStatusIcon(device.status)}
+                    label={device.status}
+                    color={getStatusColor(device.status)}
+                    size="small"
+                  />
+                  <Box>
+                    <Typography variant="body2" fontWeight="medium">
+                      {device.name || 'Unnamed Device'}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {device.device_id} • {device.type} • {device.store_id}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    {new Date(device.created_at).toLocaleString()}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Chip
+                    label={device.last_seen ? 'Online' : 'Offline'}
+                    color={device.last_seen ? 'success' : 'default'}
+                    size="small"
+                    variant="outlined"
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        )}
+      </Paper>
 
       {/* Pairing History */}
       <Paper sx={{ mt: 3, p: 3 }}>

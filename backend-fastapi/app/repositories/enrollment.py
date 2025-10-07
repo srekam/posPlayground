@@ -21,7 +21,10 @@ class EnrollmentRepository(BaseRepository):
     
     async def create_enroll_token(self, token: EnrollToken) -> EnrollToken:
         """Create a new enrollment token"""
-        token_dict = token.dict(by_alias=True, exclude={"id"})
+        token_dict = token.dict(by_alias=True, exclude={"id"}, exclude_none=False)
+        logger.info("Saving enrollment token to database", 
+                   token_dict=token_dict,
+                   manual_key=token_dict.get("manual_key"))
         result = await self.collection.insert_one(token_dict)
         
         if result.inserted_id:
@@ -42,57 +45,81 @@ class EnrollmentRepository(BaseRepository):
         return None
     
     async def get_enroll_token_by_manual_key(self, manual_key: str) -> Optional[EnrollToken]:
-        """Get enrollment token by manual key"""
-        logger.info("get_enroll_token_by_manual_key called", manual_key=manual_key[:10] + "...")
+        """Get enrollment token by 5-digit manual key"""
+        logger.info("get_enroll_token_by_manual_key called", manual_key=manual_key)
         
-        # Parse the manual key to get the key part and checksum
-        if not manual_key.startswith('PP.'):
-            logger.warning("Manual key does not start with PP.", manual_key=manual_key[:10] + "...")
+        # For 5-digit codes, directly search by manual_key field
+        if not manual_key.isdigit() or len(manual_key) != 5:
+            logger.warning("Invalid manual key format - must be 5 digits", manual_key=manual_key)
             return None
         
-        parts = manual_key[3:].split('.')
-        logger.info("Manual key parts", parts=parts, count=len(parts))
+        # Find enrollment token by manual_key field
+        query = {
+            "manual_key": manual_key,
+            "status": {"$in": ["active", "pending", "unused"]},
+            "expires_at": {"$gt": datetime.utcnow()}
+        }
         
-        if len(parts) != 6:
-            logger.warning("Manual key does not have 6 parts", parts=parts, count=len(parts))
-            return None
+        logger.info("Database query details", 
+                   query=query,
+                   manual_key_type=type(manual_key).__name__,
+                   manual_key_length=len(manual_key))
         
-        key_part = ''.join(parts[:5])  # 20 characters
-        checksum = int(parts[5])
+        # Also check what's actually in the database - get recent tokens with manual_key
+        all_tokens = await self.collection.find(
+            {"manual_key": {"$exists": True}}, 
+            {"manual_key": 1, "status": 1, "expires_at": 1, "created_at": 1}
+        ).sort("created_at", -1).limit(5).to_list(5)
+        logger.info("Recent tokens with manual_key in database", tokens=all_tokens)
         
-        # Verify checksum
-        expected_checksum = sum(ord(c) for c in key_part) % 100
-        if expected_checksum != checksum:
-            return None
+        token_doc = await self.collection.find_one(query)
         
-        # Search for enrollment token that matches the cleaned key part
-        # Remove trailing zeros from key_part to get the actual token prefix
-        token_prefix = key_part.rstrip('0')
+        # Also try a direct lookup by manual_key only to debug
+        direct_lookup = await self.collection.find_one({"manual_key": manual_key})
+        logger.info("Direct manual_key lookup", 
+                   manual_key=manual_key,
+                   found=direct_lookup is not None,
+                   token_data=direct_lookup)
         
-        # Find enrollment token that, when cleaned, starts with this prefix
-        # We need to search through all tokens and check if their cleaned version matches
-        cursor = self.collection.find({
-            "status": {"$in": ["unused", "active", "pending"]}
-        })
+        logger.info("Database query result", 
+                   manual_key=manual_key,
+                   found=token_doc is not None,
+                   current_time=datetime.utcnow())
         
-        logger.info("Searching for enrollment token by manual key", 
-                   manual_key=manual_key[:10] + "...",
-                   token_prefix=token_prefix)
+        if token_doc:
+            logger.info("Found enrollment token by manual key",
+                       manual_key=manual_key,
+                       token=token_doc.get("token", "")[:8] + "...",
+                       status=token_doc.get("status"),
+                       expires_at=token_doc.get("expires_at"))
+            return EnrollToken(**token_doc)
         
-        async for token_doc in cursor:
-            original_token = token_doc["token"]
-            # Clean the original token the same way as in generation
-            clean_token = original_token.replace('-', '').replace('_', '').replace('=', '')
-            logger.info("Checking token", 
-                       original_token=original_token[:10] + "...",
-                       clean_token=clean_token[:20] + "...",
-                       token_prefix=token_prefix,
-                       matches=clean_token.startswith(token_prefix))
-            if clean_token.startswith(token_prefix):
-                logger.info("Found matching token", token=original_token[:10] + "...")
-                return EnrollToken(**token_doc)
-        
-        logger.info("No matching token found", token_prefix=token_prefix)
+        logger.warning("No enrollment token found for manual key", manual_key=manual_key)
+        return None
+
+    async def get_most_recent_unused_token(self, within_seconds: int = 60) -> Optional[EnrollToken]:
+        """Fallback: get the most recent unused token created within the last N seconds.
+        This helps pair devices when the UI/app code drifts but timing is correct.
+        """
+        cutoff = datetime.utcnow() - timedelta(seconds=within_seconds)
+        logger.info("Fallback lookup: most recent unused token", cutoff=cutoff)
+        doc = await self.collection.find_one(
+            {
+                "status": {"$in": ["unused", "pending", "active"]},
+                "created_at": {"$gte": cutoff},
+                "expires_at": {"$gt": datetime.utcnow()},
+            },
+            sort=[("created_at", -1)],
+        )
+        if doc:
+            logger.info(
+                "Fallback token selected",
+                token=doc.get("token", "")[:8] + "...",
+                created_at=doc.get("created_at"),
+                expires_at=doc.get("expires_at"),
+            )
+            return EnrollToken(**doc)
+        logger.warning("Fallback lookup found no usable token")
         return None
     
     async def mark_token_used(

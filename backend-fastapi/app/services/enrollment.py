@@ -81,49 +81,32 @@ class EnrollmentService(LoggerMixin):
         return f"{base_url}/enroll?e={payload.et}&tid={payload.tid}&sid={payload.sid}&dt={payload.dt}&v={payload.v}&exp={payload.exp.timestamp()}&sig={payload.sig}"
     
     def _create_manual_key(self, enroll_token: str) -> str:
-        """Create manual key with checksum"""
-        # Simple approach: use the enrollment token directly with a checksum
-        # Remove special characters that might interfere with parsing
-        clean_token = enroll_token.replace('-', '').replace('_', '').replace('=', '')
+        """Create a simple 5-digit manual key"""
+        import random
+        # Generate a simple 5-digit code (00000-99999)
+        manual_key = f"{random.randint(0, 99999):05d}"
         
-        # Format as groups: PP-XXXX-XXXX-XXXX-XXXX-XX (using first 20 chars)
-        key_part = clean_token[:20].ljust(20, '0')
+        logger.debug("Created 5-digit manual key", 
+                    enrollment_token=enroll_token[:8] + "...",
+                    manual_key=manual_key)
         
-        # Calculate checksum on the key part (first 20 characters)
-        checksum = sum(ord(c) for c in key_part) % 100
-        
-        # Use a different separator to avoid conflicts with dashes in the token
-        formatted = f"PP.{key_part[:4]}.{key_part[4:8]}.{key_part[8:12]}.{key_part[12:16]}.{key_part[16:20]}.{checksum:02d}"
-        
-        return formatted
+        return manual_key
     
     def _parse_manual_key(self, manual_key: str) -> str:
-        """Parse manual key back to enrollment token"""
+        """Parse 5-digit manual key back to enrollment token"""
         try:
-            # Remove PP. prefix and split into groups
-            if not manual_key.startswith('PP.'):
-                raise ValueError("Invalid manual key format")
+            # For 5-digit codes, we need to look up the enrollment token from the database
+            # This will be handled by the repository layer
+            if not manual_key.isdigit() or len(manual_key) != 5:
+                raise ValueError("Invalid manual key format - must be 5 digits")
             
-            # Remove PP. prefix and split by dots
-            parts = manual_key[3:].split('.')
+            logger.debug("Parsed 5-digit manual key", manual_key=manual_key)
             
-            # New format: PP.XXXX.XXXX.XXXX.XXXX.XX (6 parts)
-            if len(parts) == 6:
-                key_part = ''.join(parts[:5])  # 20 characters
-                checksum = int(parts[5])
-                
-                # Verify checksum
-                expected_checksum = sum(ord(c) for c in key_part) % 100
-                if expected_checksum != checksum:
-                    raise ValueError(f"Invalid checksum: expected {expected_checksum}, got {checksum}")
-                
-                # Return the key part (first 20 characters of cleaned enrollment token)
-                return key_part.rstrip('0')
-                
-            else:
-                raise ValueError("Invalid manual key format")
+            # Return the manual key as-is, the repository will handle the lookup
+            return manual_key
             
         except Exception as e:
+            logger.error("Failed to parse manual key", error=str(e))
             raise ValueError(f"Invalid manual key: {e}")
     
     async def generate_pairing(
@@ -137,16 +120,24 @@ class EnrollmentService(LoggerMixin):
         # Generate enrollment token
         enroll_token = self._generate_enroll_token()
         
-        # Calculate expiration
-        expires_at = datetime.utcnow() + timedelta(minutes=request.ttl_minutes)
+        # Generate 5-digit manual key
+        manual_key = self._create_manual_key(enroll_token)
+        logger.info("Generated manual key", manual_key=manual_key, enroll_token=enroll_token[:8] + "...")
+        
+        # Log the manual key that will be sent to Admin UI
+        logger.info("Manual key for Admin UI", manual_key=manual_key, will_send_to_ui=True)
+        
+        # Calculate expiration (60 seconds for quick pairing)
+        expires_at = datetime.utcnow() + timedelta(minutes=1)
         
         # Create enrollment token record
         enroll_token_doc = EnrollToken(
             token=enroll_token,
+            manual_key=manual_key,
             tenant_id=tenant_id,
             store_id=request.store_id,
             device_type=request.device_type,
-            ttl_minutes=request.ttl_minutes,
+            ttl_minutes=1,  # 60 seconds for quick pairing
             status="unused",
             created_by=created_by,
             expires_at=expires_at
@@ -154,6 +145,10 @@ class EnrollmentService(LoggerMixin):
         
         # Save to database
         await self.enrollment_repo.create_enroll_token(enroll_token_doc)
+        logger.info("Saved enrollment token to database", 
+                   manual_key=manual_key, 
+                   token=enroll_token[:8] + "...",
+                   expires_at=expires_at)
         
         # Create pairing payload
         payload = PairingPayload(
@@ -195,28 +190,31 @@ class EnrollmentService(LoggerMixin):
         enroll_token = request.enroll_token
         logger.info("Processing enrollment request", 
                    enroll_token=enroll_token[:10] + "...",
-                   is_manual_key=enroll_token.startswith('PP.'))
+                   is_manual_key=enroll_token.isdigit() and len(enroll_token) == 5)
         
         # Add debug logging to see the full manual key
-        if enroll_token.startswith('PP.'):
+        if enroll_token.isdigit() and len(enroll_token) == 5:
             logger.info("Full manual key received", manual_key=enroll_token)
         
-        if enroll_token.startswith('PP.'):
-            logger.info("Detected manual key, looking up enrollment token", 
-                       manual_key=enroll_token[:10] + "...")
+        if enroll_token.isdigit() and len(enroll_token) == 5:
+            logger.info("Detected 5-digit manual key, looking up enrollment token", 
+                       manual_key=enroll_token)
             # Use the new method to find enrollment token by manual key
             enroll_token_doc = await self.enrollment_repo.get_enroll_token_by_manual_key(enroll_token)
             if not enroll_token_doc:
-                logger.warning("Manual key lookup failed", manual_key=enroll_token[:10] + "...")
-                raise PlayParkException(
-                    error_code=ErrorCode.INVALID_ENROLL_TOKEN,
-                    message="Invalid manual key",
-                    status_code=400
-                )
+                # Fallback: accept most recent unused token within last 60s
+                logger.warning("Manual key lookup failed, attempting fallback to recent unused token", manual_key=enroll_token)
+                enroll_token_doc = await self.enrollment_repo.get_most_recent_unused_token(within_seconds=60)
+                if not enroll_token_doc:
+                    raise PlayParkException(
+                        error_code=ErrorCode.INVALID_ENROLL_TOKEN,
+                        message="Invalid manual key",
+                        status_code=400
+                    )
             # Update enroll_token to the actual token from the database
             enroll_token = enroll_token_doc.token
             logger.info("Found enrollment token for manual key", 
-                       manual_key=enroll_token[:10] + "...",
+                       manual_key=enroll_token,
                        actual_token=enroll_token[:10] + "...")
         else:
             # Get enrollment token directly

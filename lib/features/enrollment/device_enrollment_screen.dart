@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:convert';
+import 'dart:async';
 import '../../data/services/api_service.dart';
 
 class DeviceEnrollmentScreen extends StatefulWidget {
-  const DeviceEnrollmentScreen({Key? key}) : super(key: key);
+  const DeviceEnrollmentScreen({super.key});
 
   @override
   State<DeviceEnrollmentScreen> createState() => _DeviceEnrollmentScreenState();
@@ -494,8 +495,8 @@ class _DeviceEnrollmentScreenState extends State<DeviceEnrollmentScreen> {
             height: 50,
             child: ElevatedButton(
               onPressed: () {
-                // Navigate to main app
-                Navigator.of(context).pushReplacementNamed('/pos');
+                // Navigate to main app using GoRouter
+                context.go('/pos');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
@@ -647,8 +648,7 @@ class _DeviceEnrollmentScreenState extends State<DeviceEnrollmentScreen> {
 class QRScannerScreen extends StatefulWidget {
   final Function(String) onEnrollmentToken;
 
-  const QRScannerScreen({Key? key, required this.onEnrollmentToken})
-      : super(key: key);
+  const QRScannerScreen({super.key, required this.onEnrollmentToken});
 
   @override
   State<QRScannerScreen> createState() => _QRScannerScreenState();
@@ -757,73 +757,218 @@ class ManualKeyDialog extends StatefulWidget {
   final Function(String) onKeyEntered;
 
   const ManualKeyDialog({
-    Key? key,
+    super.key,
     required this.onKeyEntered,
-  }) : super(key: key);
+  });
 
   @override
   State<ManualKeyDialog> createState() => _ManualKeyDialogState();
 }
 
 class _ManualKeyDialogState extends State<ManualKeyDialog> {
-  final TextEditingController _keyController = TextEditingController();
-  final FocusNode _keyFocusNode = FocusNode();
+  final List<TextEditingController> _controllers =
+      List.generate(5, (index) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(5, (index) => FocusNode());
+  String _enteredCode = '';
+  int _timeRemaining = 60; // 60 seconds countdown
+  Timer? _timer;
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Enter Pairing Code'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Enter the pairing code provided by your administrator',
-            style: TextStyle(fontSize: 14),
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _keyController,
-            focusNode: _keyFocusNode,
-            decoration: const InputDecoration(
-              labelText: 'Pairing Code',
-              hintText: 'PP.XXXX.XXXX.XXXX.XXXX.XX',
-              border: OutlineInputBorder(),
-            ),
-            textCapitalization: TextCapitalization.characters,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9.-]')),
-              LengthLimitingTextInputFormatter(
-                  35), // Increased to accommodate new manual key format
-            ],
-            onSubmitted: (value) => _submitKey(),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _submitKey,
-          child: const Text('Pair Device'),
-        ),
-      ],
-    );
+  void initState() {
+    super.initState();
+    _startCountdown();
+  }
+
+  void _startCountdown() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_timeRemaining > 0) {
+        setState(() {
+          _timeRemaining--;
+        });
+      } else {
+        timer.cancel();
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var focusNode in _focusNodes) {
+      focusNode.dispose();
+    }
+    super.dispose();
+  }
+
+  void _onDigitChanged(int index, String value) {
+    if (value.length > 1) {
+      // Handle paste or multiple characters
+      if (value.length == 5) {
+        for (int i = 0; i < 5; i++) {
+          _controllers[i].text = value[i];
+        }
+        _updateEnteredCode();
+        _submitKey();
+        return;
+      }
+    }
+
+    if (value.isNotEmpty && !RegExp(r'[0-9]').hasMatch(value)) {
+      _controllers[index].text = '';
+      return;
+    }
+
+    _controllers[index].text = value;
+    _updateEnteredCode();
+
+    // Auto-focus next field
+    if (value.isNotEmpty && index < 4) {
+      _focusNodes[index + 1].requestFocus();
+    }
+
+    // Auto-submit when all fields are filled
+    if (_enteredCode.length == 5) {
+      _submitKey();
+    }
+  }
+
+  void _updateEnteredCode() {
+    setState(() {
+      _enteredCode = _controllers.map((controller) => controller.text).join('');
+    });
   }
 
   void _submitKey() {
-    final key = _keyController.text.trim();
-    if (key.isNotEmpty) {
-      widget.onKeyEntered(key);
+    if (_enteredCode.length == 5) {
+      widget.onKeyEntered(_enteredCode);
       Navigator.of(context).pop();
     }
   }
 
   @override
-  void dispose() {
-    _keyController.dispose();
-    _keyFocusNode.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.keyboard, color: Colors.blue),
+          SizedBox(width: 8),
+          Text('Enter Pairing Code'),
+          Spacer(),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: _timeRemaining <= 10 ? Colors.red : Colors.orange,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '${_timeRemaining}s',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Enter the 5-digit pairing code',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          SizedBox(height: 20),
+
+          // 5-digit input boxes
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(5, (index) {
+              return Container(
+                width: 50,
+                height: 60,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: _controllers[index].text.isNotEmpty
+                        ? Colors.blue
+                        : Colors.grey[300]!,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey[50],
+                ),
+                child: TextField(
+                  controller: _controllers[index],
+                  focusNode: _focusNodes[index],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  keyboardType: TextInputType.number,
+                  maxLength: 1,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    counterText: '',
+                    hintText: '',
+                  ),
+                  onChanged: (value) => _onDigitChanged(index, value),
+                  onSubmitted: (value) {
+                    if (index < 4) {
+                      _focusNodes[index + 1].requestFocus();
+                    } else {
+                      _submitKey();
+                    }
+                  },
+                ),
+              );
+            }),
+          ),
+
+          SizedBox(height: 20),
+
+          // Status message
+          if (_enteredCode.length == 5)
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green),
+                  SizedBox(width: 8),
+                  Text(
+                    'Code ready to submit',
+                    style: TextStyle(color: Colors.green[700]),
+                  ),
+                ],
+              ),
+            )
+          else
+            Text(
+              'Enter ${5 - _enteredCode.length} more digits',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _enteredCode.length == 5 ? _submitKey : null,
+          child: Text('Pair Device'),
+        ),
+      ],
+    );
   }
 }

@@ -29,6 +29,7 @@ import {
   AccountCircle,
   Logout,
   Devices,
+  DeviceHub,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -40,6 +41,7 @@ const menuItems = [
   { text: 'Items', icon: <Inventory />, path: '/items' },
   { text: 'Employees', icon: <People />, path: '/employees' },
   { text: 'Device Pairing', icon: <Devices />, path: '/device-pairing' },
+  { text: 'Device List', icon: <DeviceHub />, path: '/devices' },
   { text: 'Integrations', icon: <Extension />, path: '/integrations' },
   { text: 'Settings', icon: <Settings />, path: '/settings' },
   { text: 'Stores', icon: <Store />, path: '/stores' },

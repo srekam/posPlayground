@@ -3,11 +3,11 @@ import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../models/sale_request.dart';
 import '../models/ticket_redemption_request.dart';
-import '../../core/config/app_config.dart';
 
 class ApiService {
   static String get baseUrl {
-    const url = 'http://localhost:50080'; // Hardcoded for debugging
+    const url =
+        'http://10.3.11.253:50080'; // Updated for Android emulator communication
     print('DEBUG: ApiService.baseUrl = $url');
     return url;
   }

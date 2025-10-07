@@ -143,6 +143,7 @@ class EnrollToken(BaseDocument):
     """Enrollment token model for device pairing"""
     
     token: str = Field(..., description="Enrollment token (unique)")
+    manual_key: Optional[str] = Field(default=None, description="5-digit manual key for easy pairing")
     tenant_id: str = Field(..., description="Parent tenant ID")
     store_id: str = Field(..., description="Parent store ID")
     device_type: str = Field(..., description="Target device type: POS, GATE, KIOSK")
